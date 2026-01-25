@@ -1,0 +1,109 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MovieService = void 0;
+const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
+const movie_entity_1 = require("./entities/movie.entity");
+const genre_entity_1 = require("../genre/entities/genre.entity");
+let MovieService = class MovieService {
+    constructor(movieRepository, genreRepository) {
+        this.movieRepository = movieRepository;
+        this.genreRepository = genreRepository;
+        this.moviesInMemory = [];
+        this.idCounter = 1;
+    }
+    findAllV1() {
+        return this.moviesInMemory;
+    }
+    findOneV1(id) {
+        const movie = this.moviesInMemory.find((m) => m.id === id);
+        if (!movie) {
+            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
+        }
+        return movie;
+    }
+    createV1(createMovieDto) {
+        const movie = {
+            id: String(this.idCounter++),
+            title: createMovieDto.title,
+            duration: createMovieDto.duration,
+            poster: createMovieDto.poster || '',
+            director: createMovieDto.director,
+        };
+        this.moviesInMemory.push(movie);
+        return movie;
+    }
+    updateV1(id, updateMovieDto) {
+        const index = this.moviesInMemory.findIndex((m) => m.id === id);
+        if (index === -1) {
+            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
+        }
+        this.moviesInMemory[index] = { ...this.moviesInMemory[index], ...updateMovieDto };
+        return this.moviesInMemory[index];
+    }
+    removeV1(id) {
+        const index = this.moviesInMemory.findIndex((m) => m.id === id);
+        if (index === -1) {
+            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
+        }
+        this.moviesInMemory.splice(index, 1);
+    }
+    async findAllV2() {
+        return this.movieRepository.find({ relations: ['user', 'genres'] });
+    }
+    async findOneV2(id) {
+        const movie = await this.movieRepository.findOne({
+            where: { id },
+            relations: ['user', 'genres'],
+        });
+        if (!movie) {
+            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
+        }
+        return movie;
+    }
+    async createV2(createMovieDto) {
+        const movie = this.movieRepository.create(createMovieDto);
+        if (createMovieDto.genreIds && createMovieDto.genreIds.length > 0) {
+            movie.genres = await this.genreRepository.find({
+                where: { id: (0, typeorm_2.In)(createMovieDto.genreIds) },
+            });
+        }
+        return this.movieRepository.save(movie);
+    }
+    async updateV2(id, updateMovieDto) {
+        const movie = await this.findOneV2(id);
+        if (updateMovieDto.genreIds) {
+            movie.genres = await this.genreRepository.find({
+                where: { id: (0, typeorm_2.In)(updateMovieDto.genreIds) },
+            });
+        }
+        Object.assign(movie, updateMovieDto);
+        return this.movieRepository.save(movie);
+    }
+    async removeV2(id) {
+        const movie = await this.findOneV2(id);
+        await this.movieRepository.softRemove(movie);
+    }
+};
+exports.MovieService = MovieService;
+exports.MovieService = MovieService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(movie_entity_1.Movie)),
+    __param(1, (0, typeorm_1.InjectRepository)(genre_entity_1.Genre)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
+], MovieService);
+//# sourceMappingURL=movie.service.js.map

@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +16,12 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
           <li><a routerLink="/movies" routerLinkActive="active">Movies</a></li>
           <li><a routerLink="/calculator" routerLinkActive="active">Tickets</a></li>
           <li><a routerLink="/word" routerLinkActive="active">Word</a></li>
-          <li><a routerLink="/login" routerLinkActive="active">Login</a></li>
+          @if (isAuthenticated()) {
+            <li><button type="button" class="btn btn-secondary" (click)="onLogout()">Logout</button></li>
+          } @else {
+            <li><a routerLink="/login" routerLinkActive="active">Login</a></li>
+            <li><a routerLink="/register" routerLinkActive="active">Register</a></li>
+          }
         </ul>
       </div>
     </nav>
@@ -29,5 +36,21 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   `]
 })
 export class AppComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   title = 'CineVault';
+
+  isAuthenticated = this.authService.isAuthenticated;
+
+  onLogout(): void {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+      },
+      error: () => {
+        this.router.navigate(['/login']);
+      },
+    });
+  }
 }

@@ -4,12 +4,18 @@ import { AppModule } from './app.module';
 import { CustomFilter } from './common/filters/custom.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { RequestDurationInterceptor } from './common/interceptors/request-duration.interceptor';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS
-  app.enableCors();
+  app.enableCors({
+    origin: 'http://localhost:4200',
+    credentials: true,
+  });
+
+  app.use(cookieParser());
 
   // Exercise 2.1: URI Versioning (v1 for memory, v2 for TypeORM)
   app.enableVersioning({

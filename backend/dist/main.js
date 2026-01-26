@@ -6,9 +6,14 @@ const app_module_1 = require("./app.module");
 const custom_filter_1 = require("./common/filters/custom.filter");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
 const request_duration_interceptor_1 = require("./common/interceptors/request-duration.interceptor");
+const cookieParser = require("cookie-parser");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    app.enableCors();
+    app.enableCors({
+        origin: 'http://localhost:4200',
+        credentials: true,
+    });
+    app.use(cookieParser());
     app.enableVersioning({
         type: common_1.VersioningType.URI,
     });

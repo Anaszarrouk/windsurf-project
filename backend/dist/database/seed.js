@@ -13,7 +13,7 @@ const AppDataSource = new typeorm_1.DataSource({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '3306'),
     username: process.env.DB_USERNAME || 'root',
-    password: process.env.DB_PASSWORD || 'root',
+    password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE || 'cinevault_dev',
     entities: [user_entity_1.User, genre_entity_1.Genre, movie_entity_1.Movie, task_entity_1.Task],
     synchronize: true,

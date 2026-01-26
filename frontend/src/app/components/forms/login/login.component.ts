@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { RainbowDirective } from '../../../directives/rainbow.directive';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RainbowDirective],
+  imports: [FormsModule, RouterLink, RainbowDirective],
   template: `
     <div class="login-container">
       <div class="login-card card">
@@ -53,6 +53,10 @@ import { RainbowDirective } from '../../../directives/rainbow.directive';
             [disabled]="loginForm.invalid || isLoading">
             {{ isLoading ? 'Logging in...' : 'Login' }}
           </button>
+
+          <div style="margin-top: 12px; text-align: center;">
+            <a routerLink="/register">No account? Register</a>
+          </div>
         </form>
       </div>
     </div>

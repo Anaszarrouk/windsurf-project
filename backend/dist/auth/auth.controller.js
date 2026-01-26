@@ -22,11 +22,33 @@ let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    register(createUserDto) {
-        return this.authService.register(createUserDto);
+    async register(createUserDto, res) {
+        const result = await this.authService.register(createUserDto);
+        res.cookie('access_token', result.access_token, {
+            httpOnly: true,
+            sameSite: 'lax',
+        });
+        return result;
     }
-    login(loginDto) {
-        return this.authService.login(loginDto);
+    async regiter(createUserDto, res) {
+        const result = await this.authService.register(createUserDto);
+        res.cookie('access_token', result.access_token, {
+            httpOnly: true,
+            sameSite: 'lax',
+        });
+        return result;
+    }
+    async login(loginDto, res) {
+        const result = await this.authService.login(loginDto);
+        res.cookie('access_token', result.access_token, {
+            httpOnly: true,
+            sameSite: 'lax',
+        });
+        return result;
+    }
+    logout(res) {
+        res.clearCookie('access_token');
+        return { message: 'Logged out' };
     }
     getProfile(req) {
         return req.user;
@@ -39,17 +61,34 @@ exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('register'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Post)('regiter'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "regiter", null);
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [login_dto_1.LoginDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [login_dto_1.LoginDto, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    __param(0, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "logout", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('profile'),

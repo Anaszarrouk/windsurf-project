@@ -24,23 +24,25 @@ export class AuthService {
   isAuthenticated = signal<boolean>(false);
 
   constructor(private http: HttpClient) {
-    this.checkToken();
+    this.refreshSession$().subscribe({
+      next: (user) => {
+        this.currentUser.set(user);
+        this.isAuthenticated.set(true);
+      },
+      error: () => {
+        this.currentUser.set(null);
+        this.isAuthenticated.set(false);
+      },
+    });
   }
 
-  private checkToken(): void {
-    const token = localStorage.getItem('access_token');
-    const user = localStorage.getItem('user');
-    if (token && user) {
-      this.currentUser.set(JSON.parse(user));
-      this.isAuthenticated.set(true);
-    }
+  refreshSession$(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/profile`);
   }
 
   login(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }).pipe(
       tap((response) => {
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUser.set(response.user);
         this.isAuthenticated.set(true);
       })
@@ -50,22 +52,18 @@ export class AuthService {
   register(username: string, email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { username, email, password }).pipe(
       tap((response) => {
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUser.set(response.user);
         this.isAuthenticated.set(true);
       })
     );
   }
 
-  logout(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    this.currentUser.set(null);
-    this.isAuthenticated.set(false);
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem('access_token');
+  logout(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/logout`, {}).pipe(
+      tap(() => {
+        this.currentUser.set(null);
+        this.isAuthenticated.set(false);
+      }),
+    );
   }
 }

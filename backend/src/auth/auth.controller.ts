@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -9,13 +10,39 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  async register(@Body() createUserDto: CreateUserDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.register(createUserDto);
+    res.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    return result;
+  }
+
+  @Post('regiter')
+  async regiter(@Body() createUserDto: CreateUserDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.register(createUserDto);
+    res.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    return result;
   }
 
   @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.login(loginDto);
+    res.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    return result;
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token');
+    return { message: 'Logged out' };
   }
 
   @UseGuards(JwtAuthGuard)

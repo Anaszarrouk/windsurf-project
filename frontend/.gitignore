@@ -1,0 +1,7 @@
+# Angular
+.angular/
+dist/
+coverage/
+
+# Node
+node_modules/

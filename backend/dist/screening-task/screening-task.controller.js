@@ -18,6 +18,9 @@ const screening_task_service_1 = require("./screening-task.service");
 const create_task_dto_1 = require("./dto/create-task.dto");
 const update_task_dto_1 = require("./dto/update-task.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const user_entity_1 = require("../auth/entities/user.entity");
 const freeze_pipe_1 = require("../common/pipes/freeze.pipe");
 let ScreeningTaskController = class ScreeningTaskController {
     constructor(taskService) {
@@ -115,7 +118,8 @@ __decorate([
 ], ScreeningTaskController.prototype, "findOneV2", null);
 __decorate([
     (0, common_1.Version)('2'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER, user_entity_1.UserRole.ADMIN),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -124,7 +128,8 @@ __decorate([
 ], ScreeningTaskController.prototype, "createV2", null);
 __decorate([
     (0, common_1.Version)('2'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER, user_entity_1.UserRole.ADMIN),
     (0, common_1.Post)('frozen'),
     (0, common_1.UsePipes)(freeze_pipe_1.FreezePipe),
     __param(0, (0, common_1.Body)()),
@@ -134,7 +139,8 @@ __decorate([
 ], ScreeningTaskController.prototype, "createFrozenV2", null);
 __decorate([
     (0, common_1.Version)('2'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER, user_entity_1.UserRole.ADMIN),
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -144,7 +150,8 @@ __decorate([
 ], ScreeningTaskController.prototype, "updateV2", null);
 __decorate([
     (0, common_1.Version)('2'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER, user_entity_1.UserRole.ADMIN),
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),

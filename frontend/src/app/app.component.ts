@@ -17,6 +17,14 @@ import { AuthService } from './services/auth.service';
           <li><a routerLink="/calculator" routerLinkActive="active">Tickets</a></li>
           <li><a routerLink="/word" routerLinkActive="active">Word</a></li>
           @if (isAuthenticated()) {
+            @if ((currentUser()?.role ?? '').toLowerCase() === 'admin') {
+              <li><a routerLink="/admin" routerLinkActive="active">Admin</a></li>
+              <li><a routerLink="/manager" routerLinkActive="active">Manager</a></li>
+            } @else if ((currentUser()?.role ?? '').toLowerCase() === 'manager') {
+              <li><a routerLink="/manager" routerLinkActive="active">Manager</a></li>
+            }
+          }
+          @if (isAuthenticated()) {
             <li><button type="button" class="btn btn-secondary" (click)="onLogout()">Logout</button></li>
           } @else {
             <li><a routerLink="/login" routerLinkActive="active">Login</a></li>
@@ -42,6 +50,7 @@ export class AppComponent {
   title = 'CineVault';
 
   isAuthenticated = this.authService.isAuthenticated;
+  currentUser = this.authService.currentUser;
 
   onLogout(): void {
     this.authService.logout().subscribe({

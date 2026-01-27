@@ -18,6 +18,9 @@ const auth_service_1 = require("./auth.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
 const login_dto_1 = require("./dto/login.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
+const roles_decorator_1 = require("./decorators/roles.decorator");
+const roles_guard_1 = require("./guards/roles.guard");
+const user_entity_1 = require("./entities/user.entity");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -98,7 +101,8 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "getProfile", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Get)('users'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

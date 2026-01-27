@@ -4,6 +4,9 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
+import { UserRole } from './entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -51,7 +54,8 @@ export class AuthController {
     return req.user;
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get('users')
   findAll() {
     return this.authService.findAll();

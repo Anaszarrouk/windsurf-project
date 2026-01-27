@@ -14,6 +14,9 @@ import { ScreeningTaskService } from './screening-task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { UserRole } from '../auth/entities/user.entity';
 import { FreezePipe } from '../common/pipes/freeze.pipe';
 
 // Exercise 2.1: ScreeningTaskController with CRUD endpoints using URI Versioning
@@ -66,7 +69,8 @@ export class ScreeningTaskController {
   }
 
   @Version('2')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Post()
   createV2(@Body() createTaskDto: CreateTaskDto) {
     return this.taskService.createV2(createTaskDto);
@@ -74,7 +78,8 @@ export class ScreeningTaskController {
 
   // Exercise 6.2: Endpoint using FreezePipe
   @Version('2')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Post('frozen')
   @UsePipes(FreezePipe)
   createFrozenV2(@Body() createTaskDto: CreateTaskDto) {
@@ -82,14 +87,16 @@ export class ScreeningTaskController {
   }
 
   @Version('2')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Patch(':id')
   updateV2(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     return this.taskService.updateV2(id, updateTaskDto);
   }
 
   @Version('2')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Delete(':id')
   removeV2(@Param('id') id: string) {
     return this.taskService.removeV2(id);

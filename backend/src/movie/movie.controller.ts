@@ -13,6 +13,9 @@ import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { UserRole } from '../auth/entities/user.entity';
 
 // Exercise 2.1: MovieController with CRUD endpoints using URI Versioning
 @Controller('movies')
@@ -64,21 +67,24 @@ export class MovieController {
   }
 
   @Version('2')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post()
   createV2(@Body() createMovieDto: CreateMovieDto) {
     return this.movieService.createV2(createMovieDto);
   }
 
   @Version('2')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Patch(':id')
   updateV2(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) {
     return this.movieService.updateV2(id, updateMovieDto);
   }
 
   @Version('2')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   removeV2(@Param('id') id: string) {
     return this.movieService.removeV2(id);

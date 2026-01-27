@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 
 export interface User {
   id: string;
@@ -12,6 +12,10 @@ export interface User {
 export interface AuthResponse {
   user: User;
   access_token: string;
+}
+
+interface ApiResponse<T> {
+  data: T;
 }
 
 @Injectable({
@@ -37,12 +41,20 @@ export class AuthService {
   }
 
   refreshSession$(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/profile`);
+    return this.http.get<ApiResponse<User>>(`${this.apiUrl}/profile`).pipe(
+      map((res) => res.data),
+      tap((user) => {
+        this.currentUser.set(user);
+        this.isAuthenticated.set(true);
+      }),
+    );
   }
 
   login(username: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }).pipe(
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/login`, { username, password }).pipe(
+      map((res) => res.data),
       tap((response) => {
+        localStorage.setItem('access_token', response.access_token);
         this.currentUser.set(response.user);
         this.isAuthenticated.set(true);
       })
@@ -50,8 +62,10 @@ export class AuthService {
   }
 
   register(username: string, email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { username, email, password }).pipe(
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/register`, { username, email, password }).pipe(
+      map((res) => res.data),
       tap((response) => {
+        localStorage.setItem('access_token', response.access_token);
         this.currentUser.set(response.user);
         this.isAuthenticated.set(true);
       })
@@ -59,8 +73,10 @@ export class AuthService {
   }
 
   logout(): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/logout`, {}).pipe(
+    return this.http.post<ApiResponse<{ message: string }>>(`${this.apiUrl}/logout`, {}).pipe(
+      map((res) => res.data),
       tap(() => {
+        localStorage.removeItem('access_token');
         this.currentUser.set(null);
         this.isAuthenticated.set(false);
       }),

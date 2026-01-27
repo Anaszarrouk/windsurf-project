@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { RainbowDirective } from '../../../directives/rainbow.directive';
 
@@ -85,6 +85,7 @@ import { RainbowDirective } from '../../../directives/rainbow.directive';
 export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   credentials = { username: '', password: '' };
   isLoading = false;
@@ -96,6 +97,22 @@ export class LoginComponent {
 
     this.authService.login(this.credentials.username, this.credentials.password).subscribe({
       next: () => {
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+          return;
+        }
+
+        const role = (this.authService.currentUser()?.role ?? '').toLowerCase();
+        if (role === 'admin') {
+          this.router.navigate(['/admin']);
+          return;
+        }
+        if (role === 'manager') {
+          this.router.navigate(['/manager']);
+          return;
+        }
+
         this.router.navigate(['/movies']);
       },
       error: (err) => {

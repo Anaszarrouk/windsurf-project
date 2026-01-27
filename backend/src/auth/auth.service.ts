@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -62,6 +62,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (user.banned) {
+      throw new UnauthorizedException('User is banned');
+    }
+
     const payload = { sub: user.id, username: user.username };
 
     return {
@@ -70,6 +74,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         role: user.role,
+        banned: user.banned,
       },
       access_token: this.jwtService.sign(payload),
     };
@@ -82,6 +87,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       role: user.role,
+      banned: user.banned,
     }));
   }
 
@@ -95,6 +101,38 @@ export class AuthService {
       username: user.username,
       email: user.email,
       role: user.role,
+      banned: user.banned,
     };
+  }
+
+  async updateRole(id: string, role: UserRole): Promise<Partial<User>> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.role = role;
+    const saved = await this.userRepository.save(user);
+    return { id: saved.id, username: saved.username, email: saved.email, role: saved.role, banned: saved.banned };
+  }
+
+  async setBanned(id: string, banned: boolean): Promise<Partial<User>> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.banned = banned;
+    const saved = await this.userRepository.save(user);
+    return { id: saved.id, username: saved.username, email: saved.email, role: saved.role, banned: saved.banned };
+  }
+
+  async resetPassword(id: string, newPassword: string): Promise<{ message: string }>
+  {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
+    return { message: 'Password reset' };
   }
 }

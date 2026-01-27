@@ -10,6 +10,7 @@ export declare class User {
     email: string;
     password: string;
     role: UserRole;
+    banned: boolean;
     movies: Movie[];
     createdAt: Date;
     updatedAt: Date;

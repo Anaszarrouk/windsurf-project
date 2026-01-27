@@ -62,6 +62,9 @@ let AuthService = class AuthService {
         if (!isPasswordValid) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
+        if (user.banned) {
+            throw new common_1.UnauthorizedException('User is banned');
+        }
         const payload = { sub: user.id, username: user.username };
         return {
             user: {
@@ -69,6 +72,7 @@ let AuthService = class AuthService {
                 username: user.username,
                 email: user.email,
                 role: user.role,
+                banned: user.banned,
             },
             access_token: this.jwtService.sign(payload),
         };
@@ -80,6 +84,7 @@ let AuthService = class AuthService {
             username: user.username,
             email: user.email,
             role: user.role,
+            banned: user.banned,
         }));
     }
     async findOne(id) {
@@ -92,7 +97,35 @@ let AuthService = class AuthService {
             username: user.username,
             email: user.email,
             role: user.role,
+            banned: user.banned,
         };
+    }
+    async updateRole(id, role) {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        user.role = role;
+        const saved = await this.userRepository.save(user);
+        return { id: saved.id, username: saved.username, email: saved.email, role: saved.role, banned: saved.banned };
+    }
+    async setBanned(id, banned) {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        user.banned = banned;
+        const saved = await this.userRepository.save(user);
+        return { id: saved.id, username: saved.username, email: saved.email, role: saved.role, banned: saved.banned };
+    }
+    async resetPassword(id, newPassword) {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        user.password = await bcrypt.hash(newPassword, 10);
+        await this.userRepository.save(user);
+        return { message: 'Password reset' };
     }
 };
 exports.AuthService = AuthService;

@@ -43,8 +43,8 @@ export class MovieService {
     return this.http.patch<{ data: Movie }>(`${this.apiUrl}/${id}`, movie);
   }
 
-  deleteMovie(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  deleteMovie(id: string): Observable<{ data: unknown }> {
+    return this.http.delete<{ data: unknown }>(`${this.apiUrl}/${id}`);
   }
 
   selectMovie(movie: Movie | null): void {

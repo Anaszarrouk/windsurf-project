@@ -21,6 +21,9 @@ const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const roles_decorator_1 = require("./decorators/roles.decorator");
 const roles_guard_1 = require("./guards/roles.guard");
 const user_entity_1 = require("./entities/user.entity");
+const update_user_role_dto_1 = require("./dto/update-user-role.dto");
+const set_user_ban_dto_1 = require("./dto/set-user-ban.dto");
+const reset_user_password_dto_1 = require("./dto/reset-user-password.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -58,6 +61,15 @@ let AuthController = class AuthController {
     }
     findAll() {
         return this.authService.findAll();
+    }
+    updateRole(id, dto) {
+        return this.authService.updateRole(id, dto.role);
+    }
+    setBanned(id, dto) {
+        return this.authService.setBanned(id, dto.banned);
+    }
+    resetPassword(id, dto) {
+        return this.authService.resetPassword(id, dto.newPassword);
     }
 };
 exports.AuthController = AuthController;
@@ -108,6 +120,36 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
+    (0, common_1.Patch)('users/:id/role'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_user_role_dto_1.UpdateUserRoleDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "updateRole", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
+    (0, common_1.Patch)('users/:id/ban'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, set_user_ban_dto_1.SetUserBanDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "setBanned", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
+    (0, common_1.Post)('users/:id/reset-password'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, reset_user_password_dto_1.ResetUserPasswordDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "resetPassword", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

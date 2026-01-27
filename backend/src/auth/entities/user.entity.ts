@@ -37,6 +37,9 @@ export class User {
   })
   role: UserRole;
 
+  @Column({ type: 'boolean', default: false })
+  banned: boolean;
+
   @OneToMany(() => Movie, (movie) => movie.user)
   movies: Movie[];
 

@@ -46,6 +46,10 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "banned", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => movie_entity_1.Movie, (movie) => movie.user),
     __metadata("design:type", Array)
 ], User.prototype, "movies", void 0);

@@ -1,6 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 export declare class AuthService {
@@ -17,4 +17,9 @@ export declare class AuthService {
     }>;
     findAll(): Promise<Partial<User>[]>;
     findOne(id: string): Promise<Partial<User>>;
+    updateRole(id: string, role: UserRole): Promise<Partial<User>>;
+    setBanned(id: string, banned: boolean): Promise<Partial<User>>;
+    resetPassword(id: string, newPassword: string): Promise<{
+        message: string;
+    }>;
 }

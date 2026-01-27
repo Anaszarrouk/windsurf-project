@@ -57,7 +57,7 @@ import { GenreService, Genre } from '../../../services/genre.service';
                 @for (g of genres(); track g.id) {
                   <tr>
                     <td style="font-weight: 700;">{{ g.designation }}</td>
-                    <td style="color:#bbb;">{{ (g as any).movies?.length ?? '—' }}</td>
+                    <td style="color:#bbb;">{{ g.movies?.length || 0 }}</td>
                     <td>
                       <div class="row-actions">
                         <button class="btn btn-secondary" type="button" (click)="startEdit(g)">Edit</button>

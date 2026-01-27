@@ -1,10 +1,12 @@
 import { Component, Input, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { map } from 'rxjs/operators';
 import { Movie } from '../../../services/movie.service';
 import { BookingCartService } from '../../../services/booking-cart.service';
 import { ReviewService, Review } from '../../../services/review.service';
 import { AuthService } from '../../../services/auth.service';
+import { ScreeningService, Screening } from '../../../services/screening.service';
 import { DefaultImagePipe } from '../../../pipes/default-image.pipe';
 import { SafeUrlPipe } from '../../../pipes/safe-url.pipe';
 
@@ -54,6 +56,37 @@ import { SafeUrlPipe } from '../../../pipes/safe-url.pipe';
             <button class="btn btn-secondary" (click)="removeFromCart()">Remove from Cart</button>
           } @else {
             <button class="btn btn-primary" (click)="addToCart()">Add to Cart</button>
+          }
+        </div>
+
+        <div class="showtimes" style="margin-top: 18px;">
+          <h3>Showtimes</h3>
+
+          @if (screeningsError) {
+            <div class="error">{{ screeningsError }}</div>
+          }
+
+          @if (isLoadingScreenings) {
+            <div class="card"><p>Loading showtimes...</p></div>
+          } @else {
+            @if (screenings.length > 0) {
+              <div class="showtimes-grid">
+                @for (s of screenings; track s.id) {
+                  <div class="card showtime-item">
+                    <div class="showtime-time">
+                      <strong>{{ s.startsAt | date: 'EEE, MMM d, shortTime' }}</strong>
+                      <div class="muted">Ends: {{ s.endsAt | date: 'shortTime' }}</div>
+                    </div>
+                    <div class="showtime-meta">
+                      <div><strong>Room:</strong> {{ s.room }}</div>
+                      <div class="muted">Seats: {{ s.ticketsSold }}/{{ s.capacity }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="card"><p>No scheduled screenings for this movie.</p></div>
+            }
           }
         </div>
 
@@ -177,6 +210,28 @@ import { SafeUrlPipe } from '../../../pipes/safe-url.pipe';
       margin: 10px 0 12px;
       color: #e50914;
     }
+    .showtimes h3 {
+      margin: 10px 0 12px;
+      color: #e50914;
+    }
+    .showtimes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .showtime-item {
+      display: grid;
+      gap: 8px;
+    }
+    .muted {
+      color: #888;
+      font-size: 12px;
+    }
+    @media (max-width: 900px) {
+      .showtimes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
     .review-form textarea {
       width: 100%;
       padding: 10px;
@@ -228,11 +283,16 @@ export class DetailComponent implements OnChanges {
   private bookingService = inject(BookingCartService);
   private reviewService = inject(ReviewService);
   private authService = inject(AuthService);
+  private screeningService = inject(ScreeningService);
 
   reviews: Review[] = [];
   isLoadingReviews = false;
   isSubmitting = false;
   reviewsError = '';
+
+  screenings: Screening[] = [];
+  isLoadingScreenings = false;
+  screeningsError = '';
 
   myRating: number | null = null;
   myComment = '';
@@ -240,7 +300,23 @@ export class DetailComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['movie'] && this.movie?.id) {
       this.loadReviews();
+      this.loadScreenings();
     }
+  }
+
+  private loadScreenings(): void {
+    this.screeningsError = '';
+    this.isLoadingScreenings = true;
+    this.screeningService.getScreenings(this.movie.id).pipe(map((r: any) => r.data as Screening[])).subscribe({
+      next: (screenings) => {
+        this.screenings = screenings;
+        this.isLoadingScreenings = false;
+      },
+      error: (err) => {
+        this.screeningsError = err?.error?.message || 'Failed to load showtimes';
+        this.isLoadingScreenings = false;
+      },
+    });
   }
 
   price(): number | null {

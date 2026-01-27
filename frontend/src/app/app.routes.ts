@@ -30,6 +30,14 @@ export const routes: Routes = [
         loadComponent: () => import('./components/admin/admin-users/admin-users.component').then(m => m.AdminUsersComponent),
       },
       {
+        path: 'screenings',
+        loadComponent: () => import('./components/admin/admin-screenings/admin-screenings.component').then(m => m.AdminScreeningsComponent),
+      },
+      {
+        path: 'tasks',
+        loadComponent: () => import('./components/admin/admin-tasks/admin-tasks.component').then(m => m.AdminTasksComponent),
+      },
+      {
         path: 'pricing',
         loadComponent: () => import('./components/admin/admin-pricing/admin-pricing.component').then(m => m.AdminPricingComponent),
       },

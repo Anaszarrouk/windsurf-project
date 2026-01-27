@@ -7,6 +7,7 @@ const user_entity_1 = require("../auth/entities/user.entity");
 const genre_entity_1 = require("../genre/entities/genre.entity");
 const movie_entity_1 = require("../movie/entities/movie.entity");
 const task_entity_1 = require("../screening-task/entities/task.entity");
+const screening_entity_1 = require("../screening/entities/screening.entity");
 dotenv.config();
 const AppDataSource = new typeorm_1.DataSource({
     type: 'mysql',
@@ -15,7 +16,7 @@ const AppDataSource = new typeorm_1.DataSource({
     username: process.env.DB_USERNAME || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE || 'cinevault_dev',
-    entities: [user_entity_1.User, genre_entity_1.Genre, movie_entity_1.Movie, task_entity_1.Task],
+    entities: [user_entity_1.User, genre_entity_1.Genre, movie_entity_1.Movie, task_entity_1.Task, screening_entity_1.Screening],
     synchronize: true,
 });
 async function seed() {
@@ -26,12 +27,13 @@ async function seed() {
         const genreRepository = AppDataSource.getRepository(genre_entity_1.Genre);
         const movieRepository = AppDataSource.getRepository(movie_entity_1.Movie);
         const taskRepository = AppDataSource.getRepository(task_entity_1.Task);
+        const screeningRepository = AppDataSource.getRepository(screening_entity_1.Screening);
         const hashedPassword = await bcrypt.hash('password123', 10);
         const users = [
-            { username: 'admin', email: 'admin@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.ADMIN },
-            { username: 'manager', email: 'manager@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.MANAGER },
-            { username: 'john_doe', email: 'john@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.USER },
-            { username: 'jane_smith', email: 'jane@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.USER },
+            { username: 'admin', email: 'admin@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.ADMIN, banned: false },
+            { username: 'manager', email: 'manager@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.MANAGER, banned: false },
+            { username: 'john_doe', email: 'john@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.USER, banned: false },
+            { username: 'jane_smith', email: 'jane@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.USER, banned: false },
         ];
         const savedUsers = [];
         for (const userData of users) {
@@ -183,6 +185,70 @@ async function seed() {
             }
             else {
                 console.log(`Task already exists: ${taskData.name}`);
+            }
+        }
+        const allMovies = await movieRepository.find();
+        const now = new Date();
+        const todayStart = new Date(now);
+        todayStart.setHours(0, 0, 0, 0);
+        const mkDate = (base, hour, minute) => {
+            const d = new Date(base);
+            d.setHours(hour, minute, 0, 0);
+            return d;
+        };
+        const rooms = ['Room 1', 'Room 2', 'Room 3'];
+        const slots = [
+            { h: 10, m: 0 },
+            { h: 13, m: 0 },
+            { h: 16, m: 0 },
+            { h: 19, m: 0 },
+            { h: 21, m: 30 },
+        ];
+        const pickMovies = allMovies.slice(0, Math.min(allMovies.length, 6));
+        for (let i = 0; i < pickMovies.length; i++) {
+            const movie = pickMovies[i];
+            const room = rooms[i % rooms.length];
+            const slot = slots[i % slots.length];
+            const startsAt = mkDate(todayStart, slot.h, slot.m);
+            const endsAt = new Date(startsAt);
+            endsAt.setMinutes(endsAt.getMinutes() + (movie.duration || 120));
+            const existing = await screeningRepository.findOne({ where: { movieId: movie.id, startsAt } });
+            if (!existing) {
+                const screening = screeningRepository.create({
+                    movieId: movie.id,
+                    startsAt,
+                    endsAt,
+                    room,
+                    capacity: 120,
+                    ticketsSold: Math.floor(Math.random() * 80),
+                    status: screening_entity_1.ScreeningStatus.SCHEDULED,
+                });
+                await screeningRepository.save(screening);
+                console.log(`Created screening for ${movie.title} at ${startsAt.toISOString()} in ${room}`);
+            }
+        }
+        const tomorrowStart = new Date(todayStart);
+        tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+        for (let i = 0; i < Math.min(pickMovies.length, 4); i++) {
+            const movie = pickMovies[i];
+            const room = rooms[(i + 1) % rooms.length];
+            const slot = slots[(i + 2) % slots.length];
+            const startsAt = mkDate(tomorrowStart, slot.h, slot.m);
+            const endsAt = new Date(startsAt);
+            endsAt.setMinutes(endsAt.getMinutes() + (movie.duration || 120));
+            const existing = await screeningRepository.findOne({ where: { movieId: movie.id, startsAt } });
+            if (!existing) {
+                const screening = screeningRepository.create({
+                    movieId: movie.id,
+                    startsAt,
+                    endsAt,
+                    room,
+                    capacity: 120,
+                    ticketsSold: Math.floor(Math.random() * 60),
+                    status: screening_entity_1.ScreeningStatus.SCHEDULED,
+                });
+                await screeningRepository.save(screening);
+                console.log(`Created screening for ${movie.title} at ${startsAt.toISOString()} in ${room}`);
             }
         }
         console.log('Seeding completed successfully!');

@@ -85,16 +85,13 @@ export const routes: Routes = [
     loadComponent: () => import('./components/cinetech/detail/detail.component').then(m => m.DetailComponent),
   },
   {
-    path: 'calculator',
-    loadComponent: () => import('./components/signals/ticket-price-engine/ticket-price-engine.component').then(m => m.TicketPriceEngineComponent),
+    path: 'cart',
+    loadComponent: () => import('./components/cart/cart.component').then(m => m.CartComponent),
+    canActivate: [authGuard],
   },
   {
     path: 'genres',
     loadComponent: () => import('./components/signals/genre-list/genre-list.component').then(m => m.GenreListComponent),
-  },
-  {
-    path: 'word',
-    loadComponent: () => import('./components/word/word.component').then(m => m.WordComponent),
   },
   {
     path: 'login',

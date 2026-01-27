@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import { Movie } from './movie.service';
 
 // Exercise 10.1: BookingCartService (EmbaucheService) to manage selected movies
@@ -6,6 +6,8 @@ import { Movie } from './movie.service';
   providedIn: 'root'
 })
 export class BookingCartService {
+  private readonly storageKey = 'cinevault_cart_items';
+
   private cartItems = signal<Movie[]>([]);
 
   items = this.cartItems.asReadonly();
@@ -13,6 +15,34 @@ export class BookingCartService {
   itemCount = computed(() => this.cartItems().length);
   
   isEmpty = computed(() => this.cartItems().length === 0);
+
+  constructor() {
+    this.restoreFromStorage();
+
+    effect(() => {
+      const items = this.cartItems();
+      try {
+        localStorage.setItem(this.storageKey, JSON.stringify(items));
+      } catch {
+        // ignore storage errors
+      }
+    });
+  }
+
+  private restoreFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+
+      const items = parsed.filter((m: any) => m && typeof m.id === 'string');
+      this.cartItems.set(items);
+    } catch {
+      // ignore parse/storage errors
+    }
+  }
 
   addToCart(movie: Movie): void {
     const currentItems = this.cartItems();

@@ -18,10 +18,12 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const movie_entity_1 = require("./entities/movie.entity");
 const genre_entity_1 = require("../genre/entities/genre.entity");
+const review_service_1 = require("../review/review.service");
 let MovieService = class MovieService {
-    constructor(movieRepository, genreRepository) {
+    constructor(movieRepository, genreRepository, reviewService) {
         this.movieRepository = movieRepository;
         this.genreRepository = genreRepository;
+        this.reviewService = reviewService;
         this.moviesInMemory = [];
         this.idCounter = 1;
     }
@@ -42,6 +44,8 @@ let MovieService = class MovieService {
             duration: createMovieDto.duration,
             poster: createMovieDto.poster || '',
             director: createMovieDto.director,
+            price: createMovieDto.price,
+            trailerUrl: createMovieDto.trailerUrl,
         };
         this.moviesInMemory.push(movie);
         return movie;
@@ -62,7 +66,16 @@ let MovieService = class MovieService {
         this.moviesInMemory.splice(index, 1);
     }
     async findAllV2() {
-        return this.movieRepository.find({ relations: ['user', 'genres'] });
+        const movies = await this.movieRepository.find({ relations: ['user', 'genres'] });
+        const summaries = await this.reviewService.getSummariesForMovies(movies.map((m) => m.id));
+        return movies.map((m) => {
+            const s = summaries[m.id];
+            return {
+                ...m,
+                avgRating: s?.avgRating ?? 0,
+                reviewCount: s?.reviewCount ?? 0,
+            };
+        });
     }
     async findOneV2(id) {
         const movie = await this.movieRepository.findOne({
@@ -72,7 +85,12 @@ let MovieService = class MovieService {
         if (!movie) {
             throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
         }
-        return movie;
+        const summary = await this.reviewService.getSummaryForMovie(movie.id);
+        return {
+            ...movie,
+            avgRating: summary.avgRating,
+            reviewCount: summary.reviewCount,
+        };
     }
     async createV2(createMovieDto) {
         const movie = this.movieRepository.create(createMovieDto);
@@ -104,6 +122,7 @@ exports.MovieService = MovieService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(movie_entity_1.Movie)),
     __param(1, (0, typeorm_1.InjectRepository)(genre_entity_1.Genre)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        review_service_1.ReviewService])
 ], MovieService);
 //# sourceMappingURL=movie.service.js.map

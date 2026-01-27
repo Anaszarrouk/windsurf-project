@@ -13,12 +13,13 @@ const movie_service_1 = require("./movie.service");
 const movie_controller_1 = require("./movie.controller");
 const movie_entity_1 = require("./entities/movie.entity");
 const genre_entity_1 = require("../genre/entities/genre.entity");
+const review_module_1 = require("../review/review.module");
 let MovieModule = class MovieModule {
 };
 exports.MovieModule = MovieModule;
 exports.MovieModule = MovieModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([movie_entity_1.Movie, genre_entity_1.Genre])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([movie_entity_1.Movie, genre_entity_1.Genre]), review_module_1.ReviewModule],
         controllers: [movie_controller_1.MovieController],
         providers: [movie_service_1.MovieService],
         exports: [movie_service_1.MovieService],

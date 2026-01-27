@@ -9,6 +9,10 @@ export interface Movie {
   duration: number;
   poster: string;
   director: string;
+  price?: string | number;
+  avgRating?: number;
+  reviewCount?: number;
+  trailerUrl?: string;
   genres?: Genre[];
 }
 

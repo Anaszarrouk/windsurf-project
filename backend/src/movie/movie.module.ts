@@ -4,9 +4,10 @@ import { MovieService } from './movie.service';
 import { MovieController } from './movie.controller';
 import { Movie } from './entities/movie.entity';
 import { Genre } from '../genre/entities/genre.entity';
+import { ReviewModule } from '../review/review.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Movie, Genre])],
+  imports: [TypeOrmModule.forFeature([Movie, Genre]), ReviewModule],
   controllers: [MovieController],
   providers: [MovieService],
   exports: [MovieService],

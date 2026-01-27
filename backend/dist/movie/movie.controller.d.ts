@@ -9,8 +9,14 @@ export declare class MovieController {
     createV1(createMovieDto: CreateMovieDto): import("./movie.service").MovieModel;
     updateV1(id: string, updateMovieDto: UpdateMovieDto): import("./movie.service").MovieModel;
     removeV1(id: string): void;
-    findAllV2(): Promise<import("./entities/movie.entity").Movie[]>;
-    findOneV2(id: string): Promise<import("./entities/movie.entity").Movie>;
+    findAllV2(): Promise<(import("./entities/movie.entity").Movie & {
+        avgRating: number;
+        reviewCount: number;
+    })[]>;
+    findOneV2(id: string): Promise<import("./entities/movie.entity").Movie & {
+        avgRating: number;
+        reviewCount: number;
+    }>;
     createV2(createMovieDto: CreateMovieDto): Promise<import("./entities/movie.entity").Movie>;
     updateV2(id: string, updateMovieDto: UpdateMovieDto): Promise<import("./entities/movie.entity").Movie>;
     removeV2(id: string): Promise<void>;

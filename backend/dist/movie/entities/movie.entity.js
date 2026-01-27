@@ -13,6 +13,7 @@ exports.Movie = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../auth/entities/user.entity");
 const genre_entity_1 = require("../../genre/entities/genre.entity");
+const review_entity_1 = require("../../review/entities/review.entity");
 let Movie = class Movie {
 };
 exports.Movie = Movie;
@@ -32,6 +33,14 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Movie.prototype, "poster", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Movie.prototype, "price", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Movie.prototype, "trailerUrl", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
@@ -53,6 +62,10 @@ __decorate([
     }),
     __metadata("design:type", Array)
 ], Movie.prototype, "genres", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => review_entity_1.Review, (review) => review.movie),
+    __metadata("design:type", Array)
+], Movie.prototype, "reviews", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

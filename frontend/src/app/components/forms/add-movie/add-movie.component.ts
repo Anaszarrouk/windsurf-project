@@ -28,6 +28,14 @@ import { MovieService } from '../../../services/movie.service';
             <label for="poster">Poster URL</label>
             <input type="text" id="poster" name="poster" [(ngModel)]="movie.poster">
           </div>
+          <div class="form-group">
+            <label for="price">Price</label>
+            <input type="number" id="price" name="price" [(ngModel)]="movie.price" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="trailerUrl">YouTube Trailer URL</label>
+            <input type="text" id="trailerUrl" name="trailerUrl" [(ngModel)]="movie.trailerUrl">
+          </div>
           <div class="actions">
             <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="movieForm.invalid">Add Movie</button>
@@ -48,7 +56,7 @@ export class AddMovieComponent {
   private movieService = inject(MovieService);
   private router = inject(Router);
 
-  movie = { title: '', director: '', duration: 0, poster: '' };
+  movie = { title: '', director: '', duration: 0, poster: '', price: 0, trailerUrl: '' };
 
   onSubmit(): void {
     this.movieService.createMovie(this.movie).subscribe({

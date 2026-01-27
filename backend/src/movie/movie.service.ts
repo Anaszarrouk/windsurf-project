@@ -5,6 +5,7 @@ import { Movie } from './entities/movie.entity';
 import { Genre } from '../genre/entities/genre.entity';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import { ReviewService } from '../review/review.service';
 
 // In-memory storage for v1
 export interface MovieModel {
@@ -13,6 +14,8 @@ export interface MovieModel {
   duration: number;
   poster: string;
   director: string;
+  price?: number;
+  trailerUrl?: string;
 }
 
 @Injectable()
@@ -25,6 +28,7 @@ export class MovieService {
     private movieRepository: Repository<Movie>,
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
+    private reviewService: ReviewService,
   ) {}
 
   // V1: In-memory CRUD operations
@@ -47,6 +51,8 @@ export class MovieService {
       duration: createMovieDto.duration,
       poster: createMovieDto.poster || '',
       director: createMovieDto.director,
+      price: createMovieDto.price,
+      trailerUrl: createMovieDto.trailerUrl,
     };
     this.moviesInMemory.push(movie);
     return movie;
@@ -70,11 +76,21 @@ export class MovieService {
   }
 
   // V2: TypeORM CRUD operations
-  async findAllV2(): Promise<Movie[]> {
-    return this.movieRepository.find({ relations: ['user', 'genres'] });
+  async findAllV2(): Promise<(Movie & { avgRating: number; reviewCount: number })[]> {
+    const movies = await this.movieRepository.find({ relations: ['user', 'genres'] });
+    const summaries = await this.reviewService.getSummariesForMovies(movies.map((m) => m.id));
+
+    return movies.map((m) => {
+      const s = summaries[m.id];
+      return {
+        ...(m as any),
+        avgRating: s?.avgRating ?? 0,
+        reviewCount: s?.reviewCount ?? 0,
+      };
+    });
   }
 
-  async findOneV2(id: string): Promise<Movie> {
+  async findOneV2(id: string): Promise<Movie & { avgRating: number; reviewCount: number }> {
     const movie = await this.movieRepository.findOne({
       where: { id },
       relations: ['user', 'genres'],
@@ -82,7 +98,13 @@ export class MovieService {
     if (!movie) {
       throw new NotFoundException(`Movie with ID ${id} not found`);
     }
-    return movie;
+
+    const summary = await this.reviewService.getSummaryForMovie(movie.id);
+    return {
+      ...(movie as any),
+      avgRating: summary.avgRating,
+      reviewCount: summary.reviewCount,
+    };
   }
 
   async createV2(createMovieDto: CreateMovieDto): Promise<Movie> {

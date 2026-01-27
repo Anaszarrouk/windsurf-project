@@ -11,7 +11,6 @@ import { RouterLink } from '@angular/router';
       <p>Your ultimate movie theater management system</p>
       <div class="hero-actions">
         <a routerLink="/movies" class="btn btn-primary">Browse Movies</a>
-        <a routerLink="/calculator" class="btn btn-secondary">Ticket Calculator</a>
       </div>
     </div>
     
@@ -21,8 +20,8 @@ import { RouterLink } from '@angular/router';
         <p>Browse, add, and manage your movie collection with ease.</p>
       </div>
       <div class="feature-card card">
-        <h3>Ticket Pricing</h3>
-        <p>Calculate ticket prices with automatic bulk discounts.</p>
+        <h3>Reviews & Ratings</h3>
+        <p>Rate movies, write reviews, and see the community feedback.</p>
       </div>
       <div class="feature-card card">
         <h3>Theater Tasks</h3>

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { BookingCartService } from './services/booking-cart.service';
 
 @Component({
   selector: 'app-root',
@@ -14,8 +15,9 @@ import { AuthService } from './services/auth.service';
         <ul class="navbar-nav">
           <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
           <li><a routerLink="/movies" routerLinkActive="active">Movies</a></li>
-          <li><a routerLink="/calculator" routerLinkActive="active">Tickets</a></li>
-          <li><a routerLink="/word" routerLinkActive="active">Word</a></li>
+          @if (isAuthenticated()) {
+            <li><a routerLink="/cart" routerLinkActive="active">Cart ({{ cartCount() }})</a></li>
+          }
           @if (isAuthenticated()) {
             @if ((currentUser()?.role ?? '').toLowerCase() === 'admin') {
               <li><a routerLink="/admin" routerLinkActive="active">Admin</a></li>
@@ -45,12 +47,14 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent {
   private authService = inject(AuthService);
+  private cartService = inject(BookingCartService);
   private router = inject(Router);
 
   title = 'CineVault';
 
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
+  cartCount = this.cartService.itemCount;
 
   onLogout(): void {
     this.authService.logout().subscribe({

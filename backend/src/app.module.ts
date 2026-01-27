@@ -6,6 +6,7 @@ import { MovieModule } from './movie/movie.module';
 import { GenreModule } from './genre/genre.module';
 import { ScreeningTaskModule } from './screening-task/screening-task.module';
 import { CommonModule } from './common/common.module';
+import { ReviewModule } from './review/review.module';
 import { FirstMiddleware } from './common/middleware/first.middleware';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
@@ -35,6 +36,7 @@ TypeOrmModule.forRootAsync({
     CommonModule,
     AuthModule,
     MovieModule,
+    ReviewModule,
     GenreModule,
     ScreeningTaskModule,
   ],

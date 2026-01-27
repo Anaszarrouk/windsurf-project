@@ -68,14 +68,78 @@ async function seed() {
 
     // Seed Movies
     const moviesData = [
-      { title: 'The Dark Knight', duration: 152, poster: '/posters/dark-knight.jpg', director: 'Christopher Nolan', genres: ['Action', 'Drama', 'Thriller'] },
-      { title: 'Inception', duration: 148, poster: '/posters/inception.jpg', director: 'Christopher Nolan', genres: ['Action', 'Sci-Fi', 'Thriller'] },
-      { title: 'Interstellar', duration: 169, poster: '/posters/interstellar.jpg', director: 'Christopher Nolan', genres: ['Sci-Fi', 'Drama'] },
-      { title: 'The Matrix', duration: 136, poster: '/posters/matrix.jpg', director: 'Wachowski Sisters', genres: ['Action', 'Sci-Fi'] },
-      { title: 'Pulp Fiction', duration: 154, poster: '/posters/pulp-fiction.jpg', director: 'Quentin Tarantino', genres: ['Drama', 'Comedy'] },
-      { title: 'The Shining', duration: 146, poster: '/posters/shining.jpg', director: 'Stanley Kubrick', genres: ['Horror', 'Thriller'] },
-      { title: 'Toy Story', duration: 81, poster: '/posters/toy-story.jpg', director: 'John Lasseter', genres: ['Animation', 'Comedy'] },
-      { title: 'Titanic', duration: 195, poster: '/posters/titanic.jpg', director: 'James Cameron', genres: ['Drama', 'Romance'] },
+      {
+        title: 'The Dark Knight',
+        duration: 152,
+        poster: 'https://m.media-amazon.com/images/I/51k0qa6oT-L._AC_.jpg',
+        director: 'Christopher Nolan',
+        price: 12.99,
+        trailerUrl: 'https://www.youtube.com/watch?v=EXeTwQWrcwY',
+        genres: ['Action', 'Drama', 'Thriller'],
+      },
+      {
+        title: 'Inception',
+        duration: 148,
+        poster: 'https://m.media-amazon.com/images/I/51s+e2Z9WEL._AC_.jpg',
+        director: 'Christopher Nolan',
+        price: 11.99,
+        trailerUrl: 'https://www.youtube.com/watch?v=YoHD9XEInc0',
+        genres: ['Action', 'Sci-Fi', 'Thriller'],
+      },
+      {
+        title: 'Interstellar',
+        duration: 169,
+        poster: 'https://m.media-amazon.com/images/I/71n58W5T9WL._AC_SL1024_.jpg',
+        director: 'Christopher Nolan',
+        price: 13.5,
+        trailerUrl: 'https://www.youtube.com/watch?v=zSWdZVtXT7E',
+        genres: ['Sci-Fi', 'Drama'],
+      },
+      {
+        title: 'The Matrix',
+        duration: 136,
+        poster: 'https://m.media-amazon.com/images/I/51vpnbwFHrL._AC_.jpg',
+        director: 'Wachowski Sisters',
+        price: 10.0,
+        trailerUrl: 'https://www.youtube.com/watch?v=vKQi3bBA1y8',
+        genres: ['Action', 'Sci-Fi'],
+      },
+      {
+        title: 'Pulp Fiction',
+        duration: 154,
+        poster: 'https://m.media-amazon.com/images/I/71c05lTE03L._AC_SL1024_.jpg',
+        director: 'Quentin Tarantino',
+        price: 9.99,
+        trailerUrl: 'https://www.youtube.com/watch?v=s7EdQ4FqbhY',
+        genres: ['Drama', 'Comedy'],
+      },
+      {
+        title: 'The Shining',
+        duration: 146,
+        poster: 'https://m.media-amazon.com/images/I/71o2L6x6WZL._AC_SL1024_.jpg',
+        director: 'Stanley Kubrick',
+        price: 8.5,
+        trailerUrl: 'https://www.youtube.com/watch?v=5Cb3ik6zP2I',
+        genres: ['Horror', 'Thriller'],
+      },
+      {
+        title: 'Toy Story',
+        duration: 81,
+        poster: 'https://m.media-amazon.com/images/I/81mH1lZ8qEL._AC_SL1500_.jpg',
+        director: 'John Lasseter',
+        price: 7.99,
+        trailerUrl: 'https://www.youtube.com/watch?v=v-PjgYDrg70',
+        genres: ['Animation', 'Comedy'],
+      },
+      {
+        title: 'Titanic',
+        duration: 195,
+        poster: 'https://m.media-amazon.com/images/I/71KxkU7mVQL._AC_SL1024_.jpg',
+        director: 'James Cameron',
+        price: 10.5,
+        trailerUrl: 'https://www.youtube.com/watch?v=CHekzSiZjrY',
+        genres: ['Drama', 'Romance'],
+      },
     ];
 
     for (const movieData of moviesData) {
@@ -87,13 +151,26 @@ async function seed() {
           duration: movieData.duration,
           poster: movieData.poster,
           director: movieData.director,
+          price: (movieData as any).price,
+          trailerUrl: (movieData as any).trailerUrl,
           user: savedUsers[Math.floor(Math.random() * savedUsers.length)],
           genres: movieGenres,
         });
         await movieRepository.save(movie);
         console.log(`Created movie: ${movieData.title}`);
       } else {
-        console.log(`Movie already exists: ${movieData.title}`);
+        // Update existing movie so rerunning seed refreshes demo data
+        const movieGenres = savedGenres.filter(g => movieData.genres.includes(g.designation));
+
+        existingMovie.duration = movieData.duration;
+        existingMovie.director = movieData.director;
+        existingMovie.poster = movieData.poster;
+        (existingMovie as any).price = (movieData as any).price;
+        (existingMovie as any).trailerUrl = (movieData as any).trailerUrl;
+        existingMovie.genres = movieGenres;
+
+        await movieRepository.save(existingMovie);
+        console.log(`Updated movie: ${movieData.title}`);
       }
     }
 

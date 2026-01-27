@@ -9,9 +9,11 @@ import {
   ManyToOne,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { Genre } from '../../genre/entities/genre.entity';
+import { Review } from '../../review/entities/review.entity';
 
 @Entity('movies')
 export class Movie {
@@ -26,6 +28,12 @@ export class Movie {
 
   @Column({ nullable: true })
   poster: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  price: number;
+
+  @Column({ nullable: true })
+  trailerUrl: string;
 
   @Column()
   director: string;
@@ -43,6 +51,9 @@ export class Movie {
     inverseJoinColumn: { name: 'genreId', referencedColumnName: 'id' },
   })
   genres: Genre[];
+
+  @OneToMany(() => Review, (review) => review.movie)
+  reviews: Review[];
 
   @CreateDateColumn()
   createdAt: Date;

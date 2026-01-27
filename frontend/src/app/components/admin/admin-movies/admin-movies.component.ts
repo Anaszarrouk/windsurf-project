@@ -38,6 +38,16 @@ import { GenreService, Genre } from '../../../services/genre.service';
               <input name="poster" [(ngModel)]="form.poster" />
             </div>
 
+            <div class="form-group">
+              <label>Price</label>
+              <input name="price" type="number" min="0" step="0.01" [(ngModel)]="form.price" />
+            </div>
+
+            <div class="form-group">
+              <label>YouTube Trailer URL</label>
+              <input name="trailerUrl" [(ngModel)]="form.trailerUrl" />
+            </div>
+
             <div class="form-group" style="grid-column: 1 / -1;">
               <label>Genres</label>
               <select multiple name="genreIds" [(ngModel)]="form.genreIds">
@@ -91,6 +101,12 @@ import { GenreService, Genre } from '../../../services/genre.service';
                       <div style="font-weight: 700;">{{ m.title }}</div>
                       @if (m.poster) {
                         <div style="color:#888; font-size: 12px; overflow:hidden; text-overflow:ellipsis; max-width: 360px; white-space: nowrap;">{{ m.poster }}</div>
+                      }
+                      @if (m.price != null) {
+                        <div style="color:#888; font-size: 12px;">Price: {{ m.price }}</div>
+                      }
+                      @if (m.trailerUrl) {
+                        <div style="color:#888; font-size: 12px; overflow:hidden; text-overflow:ellipsis; max-width: 360px; white-space: nowrap;">{{ m.trailerUrl }}</div>
                       }
                     </td>
                     <td>{{ m.director }}</td>
@@ -208,11 +224,13 @@ export class AdminMoviesComponent {
 
   editingId = signal<string | null>(null);
 
-  form: { title: string; director: string; duration: number | null; poster: string; genreIds: string[] } = {
+  form: { title: string; director: string; duration: number | null; poster: string; price: number | null; trailerUrl: string; genreIds: string[] } = {
     title: '',
     director: '',
     duration: null,
     poster: '',
+    price: null,
+    trailerUrl: '',
     genreIds: [],
   };
 
@@ -243,8 +261,14 @@ export class AdminMoviesComponent {
 
   resetForm(): void {
     this.editingId.set(null);
-    this.form = { title: '', director: '', duration: null, poster: '', genreIds: [] };
+    this.form = { title: '', director: '', duration: null, poster: '', price: null, trailerUrl: '', genreIds: [] };
     this.error.set('');
+  }
+
+  private parseNullableNumber(value: unknown): number | null {
+    if (value == null || value === '') return null;
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(n) ? n : null;
   }
 
   startEdit(movie: Movie): void {
@@ -254,6 +278,8 @@ export class AdminMoviesComponent {
       director: movie.director,
       duration: movie.duration,
       poster: movie.poster || '',
+      price: this.parseNullableNumber((movie as any)?.price),
+      trailerUrl: movie.trailerUrl || '',
       genreIds: (movie.genres ?? []).map((g) => g.id),
     };
     this.error.set('');
@@ -268,6 +294,8 @@ export class AdminMoviesComponent {
       director: this.form.director,
       duration: Number(this.form.duration ?? 0),
       poster: this.form.poster || undefined,
+      price: this.form.price == null ? undefined : Number(this.form.price),
+      trailerUrl: this.form.trailerUrl || undefined,
       genreIds: this.form.genreIds,
     };
 

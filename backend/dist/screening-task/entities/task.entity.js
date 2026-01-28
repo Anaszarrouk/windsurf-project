@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Task = exports.TaskStatus = void 0;
 const typeorm_1 = require("typeorm");
+const screening_entity_1 = require("../../screening/entities/screening.entity");
 var TaskStatus;
 (function (TaskStatus) {
     TaskStatus["EN_ATTENTE"] = "En attente";
@@ -44,6 +45,14 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], Task.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Task.prototype, "screeningId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => screening_entity_1.Screening, { nullable: true, eager: true }),
+    __metadata("design:type", screening_entity_1.Screening)
+], Task.prototype, "screening", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

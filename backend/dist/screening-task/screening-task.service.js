@@ -41,6 +41,7 @@ let ScreeningTaskService = class ScreeningTaskService {
             description: createTaskDto.description || '',
             date: createTaskDto.date ? new Date(createTaskDto.date) : null,
             status: createTaskDto.status || 'En attente',
+            screeningId: createTaskDto.screeningId,
         };
         this.tasksInMemory.push(task);
         return task;

@@ -8,6 +8,7 @@ export interface TaskModel {
     description: string;
     date: Date | null;
     status: string;
+    screeningId?: string;
 }
 export declare class ScreeningTaskService {
     private taskRepository;

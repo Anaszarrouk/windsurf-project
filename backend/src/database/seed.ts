@@ -1,11 +1,13 @@
-import { DataSource } from 'typeorm';
+import { Between, DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import { User, UserRole } from '../auth/entities/user.entity';
 import { Genre } from '../genre/entities/genre.entity';
 import { Movie } from '../movie/entities/movie.entity';
+import { Review } from '../review/entities/review.entity';
 import { Task, TaskStatus } from '../screening-task/entities/task.entity';
 import { Screening, ScreeningStatus } from '../screening/entities/screening.entity';
+import { Booking, BookingStatus } from '../booking/entities/booking.entity';
 
 dotenv.config();
 
@@ -16,7 +18,7 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'cinevault_dev',
-  entities: [User, Genre, Movie, Task, Screening],
+  entities: [User, Genre, Movie, Review, Task, Screening, Booking],
   synchronize: true,
 });
 
@@ -30,6 +32,7 @@ async function seed() {
     const movieRepository = AppDataSource.getRepository(Movie);
     const taskRepository = AppDataSource.getRepository(Task);
     const screeningRepository = AppDataSource.getRepository(Screening);
+    const bookingRepository = AppDataSource.getRepository(Booking);
 
     // Seed Users
     const hashedPassword = await bcrypt.hash('password123', 10);
@@ -176,30 +179,6 @@ async function seed() {
       }
     }
 
-    // Seed Screening Tasks
-    const tasksData = [
-      { name: 'Clean Theater 1', description: 'Deep clean theater 1 after midnight screening', status: TaskStatus.EN_ATTENTE },
-      { name: 'Update Projector', description: 'Install new firmware on Theater 2 projector', status: TaskStatus.EN_COURS },
-      { name: 'Restock Popcorn', description: 'Restock popcorn supplies in concession stand', status: TaskStatus.FINALISE },
-      { name: 'Fix Sound System', description: 'Repair speaker in Theater 3', status: TaskStatus.EN_ATTENTE },
-      { name: 'Replace Seats', description: 'Replace damaged seats in Theater 1 row F', status: TaskStatus.EN_COURS },
-      { name: 'Inspect Fire Exits', description: 'Monthly fire exit inspection', status: TaskStatus.EN_ATTENTE },
-    ];
-
-    for (const taskData of tasksData) {
-      const existingTask = await taskRepository.findOne({ where: { name: taskData.name } });
-      if (!existingTask) {
-        const task = taskRepository.create({
-          ...taskData,
-          date: new Date(),
-        });
-        await taskRepository.save(task);
-        console.log(`Created task: ${taskData.name}`);
-      } else {
-        console.log(`Task already exists: ${taskData.name}`);
-      }
-    }
-
     // Seed Screenings (today + tomorrow)
     const allMovies = await movieRepository.find();
 
@@ -240,11 +219,17 @@ async function seed() {
           endsAt,
           room,
           capacity: 120,
-          ticketsSold: Math.floor(Math.random() * 80),
+          ticketsSold: 0,
           status: ScreeningStatus.SCHEDULED,
         });
         await screeningRepository.save(screening);
         console.log(`Created screening for ${movie.title} at ${startsAt.toISOString()} in ${room}`);
+      } else {
+        existing.room = room;
+        existing.endsAt = endsAt as any;
+        existing.capacity = 120 as any;
+        existing.status = ScreeningStatus.SCHEDULED as any;
+        await screeningRepository.save(existing);
       }
     }
 
@@ -267,12 +252,115 @@ async function seed() {
           endsAt,
           room,
           capacity: 120,
-          ticketsSold: Math.floor(Math.random() * 60),
+          ticketsSold: 0,
           status: ScreeningStatus.SCHEDULED,
         });
         await screeningRepository.save(screening);
         console.log(`Created screening for ${movie.title} at ${startsAt.toISOString()} in ${room}`);
+      } else {
+        existing.room = room;
+        existing.endsAt = endsAt as any;
+        existing.capacity = 120 as any;
+        existing.status = ScreeningStatus.SCHEDULED as any;
+        await screeningRepository.save(existing);
       }
+    }
+
+    // Seed Screening Tasks (some linked to screenings)
+    const todayEnd = new Date(todayStart);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const todaysScreenings = await screeningRepository.find({
+      where: { startsAt: Between(todayStart, todayEnd) } as any,
+      relations: ['movie'] as any,
+      order: { startsAt: 'ASC' } as any,
+    });
+
+    const s1 = todaysScreenings[0];
+    const s2 = todaysScreenings[1];
+    const s3 = todaysScreenings[2];
+
+    const tasksData = [
+      { name: 'Clean Room 1 after show', description: 'Quick cleanup right after the screening ends.', status: TaskStatus.EN_ATTENTE, screeningId: s1?.id },
+      { name: 'Projector check before show', description: 'Run projector diagnostics and focus calibration.', status: TaskStatus.EN_COURS, screeningId: s2?.id },
+      { name: 'Sound system test', description: 'Test rear speakers and subwoofer levels.', status: TaskStatus.EN_ATTENTE, screeningId: s3?.id },
+      { name: 'Restock Popcorn', description: 'Restock popcorn supplies in concession stand', status: TaskStatus.FINALISE },
+      { name: 'Inspect Fire Exits', description: 'Monthly fire exit inspection', status: TaskStatus.EN_ATTENTE },
+    ];
+
+    for (const taskData of tasksData) {
+      const existingTask = await taskRepository.findOne({ where: { name: taskData.name } });
+      if (!existingTask) {
+        const task = taskRepository.create({
+          ...(taskData as any),
+          date: new Date(),
+        });
+        await taskRepository.save(task);
+        console.log(`Created task: ${taskData.name}`);
+      } else {
+        (existingTask as any).description = (taskData as any).description;
+        (existingTask as any).status = (taskData as any).status;
+        (existingTask as any).screeningId = (taskData as any).screeningId;
+        await taskRepository.save(existingTask);
+        console.log(`Updated task: ${taskData.name}`);
+      }
+    }
+
+    // Seed Demo Bookings (linked to screenings + users)
+    const john = savedUsers.find((u) => u.username === 'john_doe');
+    const jane = savedUsers.find((u) => u.username === 'jane_smith');
+
+    if (john && jane && todaysScreenings.length) {
+      const bookingScreenings = todaysScreenings.slice(0, 3);
+      const demoUserIds = [john.id, jane.id];
+      const demoScreeningIds = bookingScreenings.map((s) => s.id);
+
+      await bookingRepository
+        .createQueryBuilder()
+        .delete()
+        .from(Booking)
+        .where('userId IN (:...userIds)', { userIds: demoUserIds })
+        .andWhere('screeningId IN (:...screeningIds)', { screeningIds: demoScreeningIds })
+        .execute();
+
+      const mkBooking = (userId: string, screening: any, seatsCount: number, status: BookingStatus) => {
+        const price = Number(screening?.movie?.price ?? 0);
+        const totalPrice = Number.isFinite(price) ? Number((price * seatsCount).toFixed(2)) : 0;
+        return bookingRepository.create({
+          userId,
+          screeningId: screening.id,
+          seatsCount,
+          totalPrice,
+          status,
+        });
+      };
+
+      const demoBookings = [
+        mkBooking(john.id, bookingScreenings[0], 2, BookingStatus.PAID),
+        mkBooking(jane.id, bookingScreenings[0], 3, BookingStatus.PAID),
+        mkBooking(john.id, bookingScreenings[1] || bookingScreenings[0], 1, BookingStatus.CANCELLED),
+        mkBooking(jane.id, bookingScreenings[1] || bookingScreenings[0], 2, BookingStatus.REFUNDED),
+        mkBooking(john.id, bookingScreenings[2] || bookingScreenings[0], 4, BookingStatus.PAID),
+      ];
+
+      for (const b of demoBookings) {
+        await bookingRepository.save(b);
+      }
+      console.log(`Created demo bookings: ${demoBookings.length}`);
+
+      // Sync ticketsSold from PAID bookings for today's screenings
+      for (const s of bookingScreenings) {
+        const raw = await bookingRepository
+          .createQueryBuilder('b')
+          .select('COALESCE(SUM(b.seatsCount), 0)', 'sum')
+          .where('b.screeningId = :screeningId', { screeningId: s.id })
+          .andWhere('b.status = :status', { status: BookingStatus.PAID })
+          .getRawOne();
+
+        const paidSeats = Number((raw as any)?.sum ?? 0);
+        await screeningRepository.update({ id: s.id } as any, { ticketsSold: paidSeats as any } as any);
+      }
+      console.log('Synced ticketsSold for demo screenings');
     }
 
     console.log('Seeding completed successfully!');

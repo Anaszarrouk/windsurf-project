@@ -1,3 +1,4 @@
+import { Screening } from '../../screening/entities/screening.entity';
 export declare enum TaskStatus {
     EN_ATTENTE = "En attente",
     EN_COURS = "En cours",
@@ -9,6 +10,8 @@ export declare class Task {
     description: string;
     date: Date;
     status: TaskStatus;
+    screeningId: string;
+    screening: Screening;
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date;

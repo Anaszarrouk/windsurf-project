@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString, IsUUID } from 'class-validator';
 import { TaskStatus } from '../entities/task.entity';
 
 export class CreateTaskDto {
@@ -17,4 +17,8 @@ export class CreateTaskDto {
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
+
+  @IsUUID()
+  @IsOptional()
+  screeningId?: string;
 }

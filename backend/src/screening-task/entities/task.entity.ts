@@ -2,11 +2,13 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
   VersionColumn,
 } from 'typeorm';
+import { Screening } from '../../screening/entities/screening.entity';
 
 export enum TaskStatus {
   EN_ATTENTE = 'En attente',
@@ -34,6 +36,12 @@ export class Task {
     default: TaskStatus.EN_ATTENTE,
   })
   status: TaskStatus;
+
+  @Column({ nullable: true })
+  screeningId: string;
+
+  @ManyToOne(() => Screening, { nullable: true, eager: true })
+  screening: Screening;
 
   @CreateDateColumn()
   createdAt: Date;

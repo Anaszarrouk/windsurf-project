@@ -4,4 +4,5 @@ export declare class CreateTaskDto {
     description?: string;
     date?: string;
     status?: TaskStatus;
+    screeningId?: string;
 }

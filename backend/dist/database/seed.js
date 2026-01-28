@@ -6,8 +6,10 @@ const dotenv = require("dotenv");
 const user_entity_1 = require("../auth/entities/user.entity");
 const genre_entity_1 = require("../genre/entities/genre.entity");
 const movie_entity_1 = require("../movie/entities/movie.entity");
+const review_entity_1 = require("../review/entities/review.entity");
 const task_entity_1 = require("../screening-task/entities/task.entity");
 const screening_entity_1 = require("../screening/entities/screening.entity");
+const booking_entity_1 = require("../booking/entities/booking.entity");
 dotenv.config();
 const AppDataSource = new typeorm_1.DataSource({
     type: 'mysql',
@@ -16,7 +18,7 @@ const AppDataSource = new typeorm_1.DataSource({
     username: process.env.DB_USERNAME || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE || 'cinevault_dev',
-    entities: [user_entity_1.User, genre_entity_1.Genre, movie_entity_1.Movie, task_entity_1.Task, screening_entity_1.Screening],
+    entities: [user_entity_1.User, genre_entity_1.Genre, movie_entity_1.Movie, review_entity_1.Review, task_entity_1.Task, screening_entity_1.Screening, booking_entity_1.Booking],
     synchronize: true,
 });
 async function seed() {
@@ -28,6 +30,7 @@ async function seed() {
         const movieRepository = AppDataSource.getRepository(movie_entity_1.Movie);
         const taskRepository = AppDataSource.getRepository(task_entity_1.Task);
         const screeningRepository = AppDataSource.getRepository(screening_entity_1.Screening);
+        const bookingRepository = AppDataSource.getRepository(booking_entity_1.Booking);
         const hashedPassword = await bcrypt.hash('password123', 10);
         const users = [
             { username: 'admin', email: 'admin@cinevault.com', password: hashedPassword, role: user_entity_1.UserRole.ADMIN, banned: false },
@@ -165,28 +168,6 @@ async function seed() {
                 console.log(`Updated movie: ${movieData.title}`);
             }
         }
-        const tasksData = [
-            { name: 'Clean Theater 1', description: 'Deep clean theater 1 after midnight screening', status: task_entity_1.TaskStatus.EN_ATTENTE },
-            { name: 'Update Projector', description: 'Install new firmware on Theater 2 projector', status: task_entity_1.TaskStatus.EN_COURS },
-            { name: 'Restock Popcorn', description: 'Restock popcorn supplies in concession stand', status: task_entity_1.TaskStatus.FINALISE },
-            { name: 'Fix Sound System', description: 'Repair speaker in Theater 3', status: task_entity_1.TaskStatus.EN_ATTENTE },
-            { name: 'Replace Seats', description: 'Replace damaged seats in Theater 1 row F', status: task_entity_1.TaskStatus.EN_COURS },
-            { name: 'Inspect Fire Exits', description: 'Monthly fire exit inspection', status: task_entity_1.TaskStatus.EN_ATTENTE },
-        ];
-        for (const taskData of tasksData) {
-            const existingTask = await taskRepository.findOne({ where: { name: taskData.name } });
-            if (!existingTask) {
-                const task = taskRepository.create({
-                    ...taskData,
-                    date: new Date(),
-                });
-                await taskRepository.save(task);
-                console.log(`Created task: ${taskData.name}`);
-            }
-            else {
-                console.log(`Task already exists: ${taskData.name}`);
-            }
-        }
         const allMovies = await movieRepository.find();
         const now = new Date();
         const todayStart = new Date(now);
@@ -220,11 +201,18 @@ async function seed() {
                     endsAt,
                     room,
                     capacity: 120,
-                    ticketsSold: Math.floor(Math.random() * 80),
+                    ticketsSold: 0,
                     status: screening_entity_1.ScreeningStatus.SCHEDULED,
                 });
                 await screeningRepository.save(screening);
                 console.log(`Created screening for ${movie.title} at ${startsAt.toISOString()} in ${room}`);
+            }
+            else {
+                existing.room = room;
+                existing.endsAt = endsAt;
+                existing.capacity = 120;
+                existing.status = screening_entity_1.ScreeningStatus.SCHEDULED;
+                await screeningRepository.save(existing);
             }
         }
         const tomorrowStart = new Date(todayStart);
@@ -244,12 +232,101 @@ async function seed() {
                     endsAt,
                     room,
                     capacity: 120,
-                    ticketsSold: Math.floor(Math.random() * 60),
+                    ticketsSold: 0,
                     status: screening_entity_1.ScreeningStatus.SCHEDULED,
                 });
                 await screeningRepository.save(screening);
                 console.log(`Created screening for ${movie.title} at ${startsAt.toISOString()} in ${room}`);
             }
+            else {
+                existing.room = room;
+                existing.endsAt = endsAt;
+                existing.capacity = 120;
+                existing.status = screening_entity_1.ScreeningStatus.SCHEDULED;
+                await screeningRepository.save(existing);
+            }
+        }
+        const todayEnd = new Date(todayStart);
+        todayEnd.setHours(23, 59, 59, 999);
+        const todaysScreenings = await screeningRepository.find({
+            where: { startsAt: (0, typeorm_1.Between)(todayStart, todayEnd) },
+            relations: ['movie'],
+            order: { startsAt: 'ASC' },
+        });
+        const s1 = todaysScreenings[0];
+        const s2 = todaysScreenings[1];
+        const s3 = todaysScreenings[2];
+        const tasksData = [
+            { name: 'Clean Room 1 after show', description: 'Quick cleanup right after the screening ends.', status: task_entity_1.TaskStatus.EN_ATTENTE, screeningId: s1?.id },
+            { name: 'Projector check before show', description: 'Run projector diagnostics and focus calibration.', status: task_entity_1.TaskStatus.EN_COURS, screeningId: s2?.id },
+            { name: 'Sound system test', description: 'Test rear speakers and subwoofer levels.', status: task_entity_1.TaskStatus.EN_ATTENTE, screeningId: s3?.id },
+            { name: 'Restock Popcorn', description: 'Restock popcorn supplies in concession stand', status: task_entity_1.TaskStatus.FINALISE },
+            { name: 'Inspect Fire Exits', description: 'Monthly fire exit inspection', status: task_entity_1.TaskStatus.EN_ATTENTE },
+        ];
+        for (const taskData of tasksData) {
+            const existingTask = await taskRepository.findOne({ where: { name: taskData.name } });
+            if (!existingTask) {
+                const task = taskRepository.create({
+                    ...taskData,
+                    date: new Date(),
+                });
+                await taskRepository.save(task);
+                console.log(`Created task: ${taskData.name}`);
+            }
+            else {
+                existingTask.description = taskData.description;
+                existingTask.status = taskData.status;
+                existingTask.screeningId = taskData.screeningId;
+                await taskRepository.save(existingTask);
+                console.log(`Updated task: ${taskData.name}`);
+            }
+        }
+        const john = savedUsers.find((u) => u.username === 'john_doe');
+        const jane = savedUsers.find((u) => u.username === 'jane_smith');
+        if (john && jane && todaysScreenings.length) {
+            const bookingScreenings = todaysScreenings.slice(0, 3);
+            const demoUserIds = [john.id, jane.id];
+            const demoScreeningIds = bookingScreenings.map((s) => s.id);
+            await bookingRepository
+                .createQueryBuilder()
+                .delete()
+                .from(booking_entity_1.Booking)
+                .where('userId IN (:...userIds)', { userIds: demoUserIds })
+                .andWhere('screeningId IN (:...screeningIds)', { screeningIds: demoScreeningIds })
+                .execute();
+            const mkBooking = (userId, screening, seatsCount, status) => {
+                const price = Number(screening?.movie?.price ?? 0);
+                const totalPrice = Number.isFinite(price) ? Number((price * seatsCount).toFixed(2)) : 0;
+                return bookingRepository.create({
+                    userId,
+                    screeningId: screening.id,
+                    seatsCount,
+                    totalPrice,
+                    status,
+                });
+            };
+            const demoBookings = [
+                mkBooking(john.id, bookingScreenings[0], 2, booking_entity_1.BookingStatus.PAID),
+                mkBooking(jane.id, bookingScreenings[0], 3, booking_entity_1.BookingStatus.PAID),
+                mkBooking(john.id, bookingScreenings[1] || bookingScreenings[0], 1, booking_entity_1.BookingStatus.CANCELLED),
+                mkBooking(jane.id, bookingScreenings[1] || bookingScreenings[0], 2, booking_entity_1.BookingStatus.REFUNDED),
+                mkBooking(john.id, bookingScreenings[2] || bookingScreenings[0], 4, booking_entity_1.BookingStatus.PAID),
+            ];
+            for (const b of demoBookings) {
+                await bookingRepository.save(b);
+            }
+            console.log(`Created demo bookings: ${demoBookings.length}`);
+            for (const s of bookingScreenings) {
+                const raw = await bookingRepository
+                    .createQueryBuilder('b')
+                    .select('COALESCE(SUM(b.seatsCount), 0)', 'sum')
+                    .where('b.screeningId = :screeningId', { screeningId: s.id })
+                    .andWhere('b.status = :status', { status: booking_entity_1.BookingStatus.PAID })
+                    .getRawOne();
+                const paidSeats = Number(raw?.sum ?? 0);
+                await screeningRepository.update({ id: s.id }, { ticketsSold: paidSeats });
+            }
+            console.log('Synced ticketsSold for demo screenings');
         }
         console.log('Seeding completed successfully!');
         await AppDataSource.destroy();

@@ -38,6 +38,10 @@ export const routes: Routes = [
         loadComponent: () => import('./components/admin/admin-tasks/admin-tasks.component').then(m => m.AdminTasksComponent),
       },
       {
+        path: 'bookings',
+        loadComponent: () => import('./components/admin/admin-bookings/admin-bookings.component').then(m => m.AdminBookingsComponent),
+      },
+      {
         path: 'pricing',
         loadComponent: () => import('./components/admin/admin-pricing/admin-pricing.component').then(m => m.AdminPricingComponent),
       },

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { RainbowDirective } from '../../../directives/rainbow.directive';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -44,9 +45,6 @@ import { RainbowDirective } from '../../../directives/rainbow.directive';
               <span class="error-message">Password is required (min 6 chars)</span>
             }
           </div>
-          @if (errorMessage) {
-            <div class="error-message">{{ errorMessage }}</div>
-          }
           <button 
             type="submit" 
             class="btn btn-primary" 
@@ -86,14 +84,13 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private notificationService = inject(NotificationService);
 
   credentials = { username: '', password: '' };
   isLoading = false;
-  errorMessage = '';
 
   onSubmit(): void {
     this.isLoading = true;
-    this.errorMessage = '';
 
     this.authService.login(this.credentials.username, this.credentials.password).subscribe({
       next: () => {
@@ -116,7 +113,13 @@ export class LoginComponent {
         this.router.navigate(['/movies']);
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Login failed';
+        const status: number | undefined = err?.status;
+        const message =
+          status === 401 || status === 403 ? 'Incorrect username or password.' :
+          status === 0 ? 'Cannot reach the server. Please check your connection and try again.' :
+          'Login failed. Please try again.';
+
+        this.notificationService.error(message);
         this.isLoading = false;
       },
       complete: () => {

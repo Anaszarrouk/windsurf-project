@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed } from '@angular/core';
+import { Component, signal, inject, computed, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MovieService, Movie } from '../../../services/movie.service';
@@ -59,9 +59,17 @@ import { map } from 'rxjs';
       <div class="movie-layout">
         <div class="movie-list-section">
           <app-liste 
-            [movies]="filteredMovies()" 
+            [movies]="pagedMovies()" 
             (movieSelected)="onMovieSelected($event)">
           </app-liste>
+
+          @if (totalPages() > 1) {
+            <div class="card pagination">
+              <button type="button" class="btn btn-secondary" [disabled]="currentPage() <= 1" (click)="prevPage()">Prev</button>
+              <div class="page-info">Page {{ currentPage() }} / {{ totalPages() }}</div>
+              <button type="button" class="btn btn-secondary" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Next</button>
+            </div>
+          }
         </div>
         <div class="movie-detail-section">
           @if (selectedMovie()) {
@@ -94,6 +102,18 @@ import { map } from 'rxjs';
       min-height: 300px;
       color: #999;
     }
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 15px;
+      padding: 12px;
+    }
+    .page-info {
+      color: #ccc;
+      font-weight: 600;
+    }
     @media (max-width: 768px) {
       .filters {
         grid-template-columns: 1fr;
@@ -112,6 +132,9 @@ export class MovieComponent {
   selectedGenreId = signal('');
   minPrice = signal<number | null>(null);
   maxPrice = signal<number | null>(null);
+
+  private readonly pageSize = 6;
+  currentPage = signal(1);
 
   movies = toSignal(
     this.movieService.getMovies().pipe(map(res => res.data)),
@@ -160,7 +183,48 @@ export class MovieComponent {
     });
   });
 
+  totalPages = computed(() => {
+    const total = this.filteredMovies().length;
+    return Math.max(1, Math.ceil(total / this.pageSize));
+  });
+
+  pagedMovies = computed(() => {
+    const page = this.currentPage();
+    const totalPages = this.totalPages();
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const start = (safePage - 1) * this.pageSize;
+    return this.filteredMovies().slice(start, start + this.pageSize);
+  });
+
   selectedMovie = this.movieService.selectedMovie;
+
+  constructor() {
+    // Reset to page 1 when filters change.
+    effect(() => {
+      this.search();
+      this.selectedGenreId();
+      this.minPrice();
+      this.maxPrice();
+      this.currentPage.set(1);
+    });
+
+    // Clamp page if user is on a page that no longer exists after filtering.
+    effect(() => {
+      const total = this.totalPages();
+      const page = this.currentPage();
+      if (page > total) {
+        this.currentPage.set(total);
+      }
+    });
+  }
+
+  nextPage(): void {
+    this.currentPage.set(Math.min(this.totalPages(), this.currentPage() + 1));
+  }
+
+  prevPage(): void {
+    this.currentPage.set(Math.max(1, this.currentPage() - 1));
+  }
 
   onMinPriceChange(value: unknown): void {
     this.minPrice.set(this.parseNullableNumber(value));

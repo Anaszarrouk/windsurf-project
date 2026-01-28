@@ -3,12 +3,14 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { BookingCartService } from './services/booking-cart.service';
+import { NotificationHostComponent } from './components/notification-host/notification-host.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationHostComponent],
   template: `
+    <app-notification-host />
     <nav class="navbar">
       <div class="container navbar-content">
         <a routerLink="/" class="navbar-brand">CineVault</a>
@@ -17,6 +19,9 @@ import { BookingCartService } from './services/booking-cart.service';
           <li><a routerLink="/movies" routerLinkActive="active">Movies</a></li>
           @if (isAuthenticated()) {
             <li><a routerLink="/cart" routerLinkActive="active">Cart ({{ cartCount() }})</a></li>
+          }
+          @if (isAuthenticated()) {
+            <li><a routerLink="/report" routerLinkActive="active">Report</a></li>
           }
           @if (isAuthenticated()) {
             @if ((currentUser()?.role ?? '').toLowerCase() === 'admin') {

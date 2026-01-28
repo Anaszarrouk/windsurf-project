@@ -7,6 +7,7 @@ import { BookingCartService } from '../../../services/booking-cart.service';
 import { ReviewService, Review } from '../../../services/review.service';
 import { AuthService } from '../../../services/auth.service';
 import { ScreeningService, Screening } from '../../../services/screening.service';
+import { NotificationService } from '../../../services/notification.service';
 import { DefaultImagePipe } from '../../../pipes/default-image.pipe';
 import { SafeUrlPipe } from '../../../pipes/safe-url.pipe';
 
@@ -93,22 +94,22 @@ import { SafeUrlPipe } from '../../../pipes/safe-url.pipe';
         <div class="reviews">
           <h3>Reviews</h3>
 
-          @if (reviewsError) {
-            <div class="error">{{ reviewsError }}</div>
-          }
-
           @if (isAuthenticated()) {
             <div class="card review-form">
               <div class="form-group">
                 <label>Rating</label>
-                <select [(ngModel)]="myRating">
-                  <option [ngValue]="null">Select</option>
-                  <option [ngValue]="1">1</option>
-                  <option [ngValue]="2">2</option>
-                  <option [ngValue]="3">3</option>
-                  <option [ngValue]="4">4</option>
-                  <option [ngValue]="5">5</option>
-                </select>
+                <div class="stars" role="radiogroup" aria-label="Rating">
+                  @for (s of stars; track s) {
+                    <button
+                      type="button"
+                      class="star"
+                      [class.filled]="(myRating ?? 0) >= s"
+                      (click)="setMyRating(s)"
+                      [attr.aria-label]="'Set rating to ' + s">
+                      ★
+                    </button>
+                  }
+                </div>
               </div>
 
               <div class="form-group">
@@ -140,7 +141,11 @@ import { SafeUrlPipe } from '../../../pipes/safe-url.pipe';
                     <strong>{{ r.user?.username || 'User' }}</strong>
                     <span class="review-date">{{ r.createdAt | date: 'short' }}</span>
                   </div>
-                  <div class="review-rating">Rating: {{ r.rating }}/5</div>
+                  <div class="review-rating">
+                    @for (s of stars; track s) {
+                      <span class="star readonly" [class.filled]="r.rating >= s">★</span>
+                    }
+                  </div>
                   @if (r.comment) {
                     <div class="review-comment">{{ r.comment }}</div>
                   }
@@ -241,6 +246,26 @@ import { SafeUrlPipe } from '../../../pipes/safe-url.pipe';
       color: #fff;
       resize: vertical;
     }
+    .stars {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .star {
+      background: transparent;
+      border: none;
+      color: #666;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .star.readonly {
+      cursor: default;
+    }
+    .star.filled {
+      color: #f5c542;
+    }
     .reviews-list {
       display: flex;
       flex-direction: column;
@@ -284,6 +309,7 @@ export class DetailComponent implements OnChanges {
   private reviewService = inject(ReviewService);
   private authService = inject(AuthService);
   private screeningService = inject(ScreeningService);
+  private notificationService = inject(NotificationService);
 
   reviews: Review[] = [];
   isLoadingReviews = false;
@@ -296,6 +322,8 @@ export class DetailComponent implements OnChanges {
 
   myRating: number | null = null;
   myComment = '';
+
+  stars = [1, 2, 3, 4, 5];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['movie'] && this.movie?.id) {
@@ -317,6 +345,10 @@ export class DetailComponent implements OnChanges {
         this.isLoadingScreenings = false;
       },
     });
+  }
+
+  setMyRating(value: number): void {
+    this.myRating = value;
   }
 
   price(): number | null {
@@ -371,11 +403,19 @@ export class DetailComponent implements OnChanges {
         this.isSubmitting = false;
         this.myRating = null;
         this.myComment = '';
+        this.notificationService.success('Review submitted');
         this.loadReviews();
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.reviewsError = err?.error?.message || 'Failed to submit review';
+        const status: number | undefined = err?.status;
+        const message =
+          status === 409 ? 'You already reviewed this movie. You can’t submit another review.' :
+          status === 401 || status === 403 ? 'Please log in to submit a review.' :
+          status === 400 ? 'Please choose a rating and try again.' :
+          'Something went wrong while submitting your review. Please try again.';
+
+        this.notificationService.error(message);
       },
     });
   }

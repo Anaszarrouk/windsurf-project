@@ -6,6 +6,7 @@ import { MovieModule } from './movie/movie.module';
 import { GenreModule } from './genre/genre.module';
 import { ScreeningTaskModule } from './screening-task/screening-task.module';
 import { ScreeningModule } from './screening/screening.module';
+import { ReportModule } from './report/report.module';
 import { CommonModule } from './common/common.module';
 import { ReviewModule } from './review/review.module';
 import { FirstMiddleware } from './common/middleware/first.middleware';
@@ -41,6 +42,7 @@ TypeOrmModule.forRootAsync({
     GenreModule,
     ScreeningTaskModule,
     ScreeningModule,
+    ReportModule,
   ],
 })
 export class AppModule implements NestModule {

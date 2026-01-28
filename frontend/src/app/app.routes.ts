@@ -42,6 +42,10 @@ export const routes: Routes = [
         loadComponent: () => import('./components/admin/admin-pricing/admin-pricing.component').then(m => m.AdminPricingComponent),
       },
       {
+        path: 'user-reports',
+        loadComponent: () => import('./components/admin/admin-user-reports/admin-user-reports.component').then(m => m.AdminUserReportsComponent),
+      },
+      {
         path: 'reports',
         loadComponent: () => import('./components/admin/admin-reports/admin-reports.component').then(m => m.AdminReportsComponent),
       },
@@ -73,6 +77,10 @@ export const routes: Routes = [
         loadComponent: () => import('./components/manager/manager-bookings/manager-bookings.component').then(m => m.ManagerBookingsComponent),
       },
       {
+        path: 'user-reports',
+        loadComponent: () => import('./components/manager/manager-user-reports/manager-user-reports.component').then(m => m.ManagerUserReportsComponent),
+      },
+      {
         path: 'reports',
         loadComponent: () => import('./components/manager/manager-reports/manager-reports.component').then(m => m.ManagerReportsComponent),
       },
@@ -95,6 +103,11 @@ export const routes: Routes = [
   {
     path: 'cart',
     loadComponent: () => import('./components/cart/cart.component').then(m => m.CartComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'report',
+    loadComponent: () => import('./components/forms/report/report.component').then(m => m.ReportComponent),
     canActivate: [authGuard],
   },
   {

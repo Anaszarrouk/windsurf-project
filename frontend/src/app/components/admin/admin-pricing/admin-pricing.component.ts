@@ -9,7 +9,7 @@ import { Movie, MovieService } from '../../../services/movie.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <h2 class="page-title">Pricing & Discounts</h2>
+    <h2 class="page-title">Pricing</h2>
 
     <div class="grid">
       <div class="card">

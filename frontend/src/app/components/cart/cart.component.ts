@@ -1,15 +1,20 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { BookingCartService } from '../../services/booking-cart.service';
 import { AuthService } from '../../services/auth.service';
 import { DefaultImagePipe } from '../../pipes/default-image.pipe';
+import { BookingService } from '../../services/booking.service';
+import { Screening, ScreeningService } from '../../services/screening.service';
+import { NotificationService } from '../../services/notification.service';
 import { jsPDF } from 'jspdf';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterLink, DefaultImagePipe],
+  imports: [CommonModule, RouterLink, DefaultImagePipe, FormsModule],
   template: `
     <div class="cart-container">
       <h1 class="page-title">Cart</h1>
@@ -44,32 +49,58 @@ import { jsPDF } from 'jspdf';
 
             <div style="display:flex; gap: 10px; margin-top: 15px;">
               <button type="button" class="btn btn-secondary" (click)="clear()">Clear cart</button>
-              <button type="button" class="btn btn-primary" (click)="downloadBillPdf()">Download bill (PDF)</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2 style="margin-bottom: 15px;">Summary</h2>
-            <div class="summary-row">
-              <span>Customer</span>
-              <span>{{ customerLabel() }}</span>
-            </div>
-            <div class="summary-row">
-              <span>Date</span>
-              <span>{{ billDate() }}</span>
-            </div>
-            <div class="summary-row">
-              <span>Items</span>
-              <span>{{ itemCount() }}</span>
-            </div>
-            <div class="summary-row">
-              <span>Total</span>
-              <span>{{ totalAmount() | number: '1.2-2' }}</span>
+              <button type="button" class="btn btn-success" (click)="startPay()" [disabled]="isPaying()">Pay</button>
             </div>
           </div>
         </div>
       }
     </div>
+
+    @if (payMode()) {
+      <div class="modal-overlay" style="position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
+        <div class="card" style="max-width:600px;width:100%;max-height:80vh;overflow:auto;padding:20px;">
+          <h3 style="margin-top:0;">Select screenings & seats</h3>
+          @for (item of payItems(); track item.movie.id) {
+            <div style="margin-bottom:20px;padding:12px;background:#1a1a1a;border-radius:8px;">
+              <div style="font-weight:600;margin-bottom:8px;">{{ item.movie.title }}</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label>
+                  Screening:
+                  <select [ngModel]="item.selectedScreeningId()" (ngModelChange)="item.selectedScreeningId.set($event); item.seatsCount.set(1)">
+                    @for (s of item.screenings(); track s.id) {
+                      <option [ngValue]="s.id">{{ s.startsAt | date:'short' }} – {{ s.room }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Seats:
+                  <input type="number" min="1" [max]="maxSeatsFor(item)" [ngModel]="item.seatsCount()" (ngModelChange)="item.seatsCount.set($event)" />
+                  <small style="color:#888;">Available: {{ maxSeatsFor(item) }}</small>
+                </label>
+              </div>
+            </div>
+          }
+          <div class="card" style="margin-top:16px;background:#1a1a1a;">
+            <h4 style="margin-top:0;">Summary</h4>
+            <div style="display:grid;gap:8px;color:#ccc;">
+              <div style="display:flex;justify-content:space-between;">
+                <span>Total Seats:</span>
+                <span>{{ totalSeats() }}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span>Total Price:</span>
+                <span>{{ totalPrice() | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+            <button type="button" class="btn btn-secondary" (click)="cancelPay()">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="downloadBillPdf()">Download bill (PDF)</button>
+            <button type="button" class="btn btn-success" (click)="confirmPay()" [disabled]="!canPay()">Confirm Pay</button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     .cart-items {
@@ -133,10 +164,28 @@ import { jsPDF } from 'jspdf';
 export class CartComponent {
   private cart = inject(BookingCartService);
   private authService = inject(AuthService);
+  private bookingService = inject(BookingService);
+  private screeningService = inject(ScreeningService);
+  private notificationService = inject(NotificationService);
 
   items = this.cart.items;
   itemCount = this.cart.itemCount;
   isEmpty = this.cart.isEmpty;
+  payMode = signal(false);
+  payItems = signal<any[]>([]);
+  isPaying = signal(false);
+
+  totalSeats = computed(() => {
+    return this.payItems().reduce((sum, item) => sum + (item.seatsCount() || 0), 0);
+  });
+
+  totalPrice = computed(() => {
+    return this.payItems().reduce((sum, item) => {
+      const seats = item.seatsCount() || 0;
+      const price = this.getMoviePrice(item.movie);
+      return sum + (seats * price);
+    }, 0);
+  });
 
   customerLabel = computed(() => {
     const user = this.authService.currentUser();
@@ -159,6 +208,90 @@ export class CartComponent {
     this.cart.clearCart();
   }
 
+  startPay(): void {
+    const items = this.items();
+    const payItems = items.map(movie => ({
+      movie,
+      screenings: signal<Screening[]>([]),
+      selectedScreeningId: signal<string>(''),
+      seatsCount: signal<number>(1),
+    }));
+    this.payItems.set(payItems);
+    this.payMode.set(true);
+
+    // Load screenings for each movie
+    for (const pi of payItems) {
+      this.screeningService.getScreenings(pi.movie.id).pipe(map((r: any) => r.data as Screening[])).subscribe({
+        next: (screenings) => {
+          console.log('[startPay] screenings loaded for', pi.movie.title, screenings);
+          pi.screenings.set(screenings || []);
+        },
+        error: (err) => {
+          console.error('[startPay] failed to load screenings for', pi.movie.title, err);
+          pi.screenings.set([]);
+        },
+      });
+    }
+  }
+
+  cancelPay(): void {
+    this.payMode.set(false);
+    this.payItems.set([]);
+  }
+
+  maxSeatsFor(item: any): number {
+    const screening = item.screenings().find((s: Screening) => s.id === item.selectedScreeningId());
+    if (!screening) return 0;
+    const capacity = Number(screening.capacity) || 0;
+    const sold = Number(screening.ticketsSold) || 0;
+    const available = Math.max(0, capacity - sold);
+    console.log('[maxSeatsFor] screeningId:', screening.id, 'capacity:', capacity, 'sold:', sold, 'available:', available);
+    return available;
+  }
+
+  canPay(): boolean {
+    const can = this.payItems().every(item => {
+      const screeningId = item.selectedScreeningId();
+      const seats = item.seatsCount();
+      const ok = screeningId && seats > 0 && seats <= this.maxSeatsFor(item);
+      console.log('[canPay] item:', item.movie.title, 'screeningId:', screeningId, 'seats:', seats, 'ok:', ok);
+      return ok;
+    });
+    console.log('[canPay] overall:', can);
+    return can;
+  }
+
+  async confirmPay(): Promise<void> {
+    this.isPaying.set(true);
+    try {
+      const items = this.payItems();
+      for (const item of items) {
+        const screeningId = item.selectedScreeningId();
+        const seatsCount = item.seatsCount();
+        await this.bookingService.createBooking({ screeningId, seatsCount }).toPromise();
+      }
+      this.notificationService.success('Payment successful! Bookings created.');
+      // Refresh screenings to reflect updated ticketsSold
+      for (const item of items) {
+        this.screeningService.getScreenings(item.movie.id).pipe(map((r: any) => r.data as Screening[])).subscribe({
+          next: (screenings) => item.screenings.set(screenings || []),
+          error: () => {},
+        });
+      }
+      this.cart.clearCart();
+      this.cancelPay();
+    } catch (err: any) {
+      const msg = err?.error?.message || 'Payment failed. Please try again.';
+      if (msg.includes('Not enough seats available')) {
+        this.notificationService.error('Cannot complete booking: not enough seats available for this screening.');
+      } else {
+        this.notificationService.error(msg);
+      }
+    } finally {
+      this.isPaying.set(false);
+    }
+  }
+
   downloadBillPdf(): void {
     const doc = new jsPDF();
 
@@ -172,26 +305,36 @@ export class CartComponent {
 
     let y = 46;
     doc.setFontSize(12);
-    doc.text('Items', 14, y);
+    doc.text('Booking Summary', 14, y);
     y += 8;
 
     doc.setFontSize(10);
-    const items = this.items();
+    const items = this.payMode() ? this.payItems() : this.items();
 
     if (items.length === 0) {
       doc.text('No items in cart.', 14, y);
       y += 8;
     } else {
-      doc.text('Title', 14, y);
+      doc.text('Movie', 14, y);
+      doc.text('Screening', 80, y);
+      doc.text('Seats', 130, y);
       doc.text('Price', 170, y, { align: 'right' });
       y += 6;
       doc.line(14, y, 196, y);
       y += 6;
 
-      for (const m of items) {
-        const price = this.getMoviePrice(m);
-        const titleLine = this.truncate(m.title, 70);
+      for (const item of items) {
+        const screening = item.screenings?.().find((s: Screening) => s.id === item.selectedScreeningId?.());
+        const screeningLabel = screening
+          ? `${new Date(screening.startsAt).toLocaleString()} – ${screening.room}`
+          : '—';
+        const seats = item.seatsCount?.() ?? 1;
+        const price = this.getMoviePrice(item.movie) * seats;
+        const titleLine = this.truncate(item.movie.title, 30);
+        const screeningLine = this.truncate(screeningLabel, 30);
         doc.text(titleLine, 14, y);
+        doc.text(screeningLine, 80, y);
+        doc.text(seats.toString(), 130, y, { align: 'center' });
         doc.text(price.toFixed(2), 170, y, { align: 'right' });
         y += 6;
 
@@ -206,8 +349,14 @@ export class CartComponent {
       y += 8;
 
       doc.setFontSize(12);
-      doc.text('Total', 14, y);
-      doc.text(this.totalAmount().toFixed(2), 170, y, { align: 'right' });
+      if (this.payMode()) {
+        doc.text(`Total Seats: ${this.totalSeats()}`, 14, y);
+        y += 6;
+        doc.text(`Total Price: ${this.totalPrice().toFixed(2)}`, 14, y);
+      } else {
+        doc.text('Total', 14, y);
+        doc.text(this.totalAmount().toFixed(2), 170, y, { align: 'right' });
+      }
     }
 
     doc.save(`cinevault-bill-${new Date().toISOString().slice(0, 10)}.pdf`);

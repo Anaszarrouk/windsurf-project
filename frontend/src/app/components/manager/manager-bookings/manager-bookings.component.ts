@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Booking, BookingService } from '../../../services/booking.service';
+import { Screening, ScreeningService } from '../../../services/screening.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-manager-bookings',
@@ -72,8 +74,12 @@ import { Booking, BookingService } from '../../../services/booking.service';
                   <td>{{ b.status }}</td>
                   <td>
                     <div style="display:flex; gap: 8px; align-items:center;">
-                      <button class="btn btn-secondary" type="button" (click)="cancel(b, 'cancelled')" [disabled]="busyId() === b.id || b.status !== 'paid'">Cancel</button>
-                      <button class="btn btn-danger" type="button" (click)="cancel(b, 'refunded')" [disabled]="busyId() === b.id || b.status !== 'paid'">Refund</button>
+                      @if (b.status === 'paid') {
+                        <button class="btn btn-secondary" type="button" (click)="cancel(b, 'cancelled')" [disabled]="busyId() === b.id">Cancel</button>
+                        <button class="btn btn-danger" type="button" (click)="cancel(b, 'refunded')" [disabled]="busyId() === b.id">Refund</button>
+                      } @else {
+                        <button class="btn btn-danger" type="button" (click)="deleteBooking(b)" [disabled]="busyId() === b.id">Delete</button>
+                      }
                       @if (busyId() === b.id) {
                         <span style="color:#888;">Saving…</span>
                       }
@@ -117,6 +123,8 @@ import { Booking, BookingService } from '../../../services/booking.service';
 })
 export class ManagerBookingsComponent {
   private bookingService = inject(BookingService);
+  private screeningService = inject(ScreeningService);
+  private notificationService = inject(NotificationService);
 
   bookings = signal<Booking[]>([]);
   isLoading = signal(true);
@@ -157,11 +165,40 @@ export class ManagerBookingsComponent {
     this.bookingService.cancelBooking(booking.id, status).subscribe({
       next: () => {
         this.busyId.set(null);
+        this.notificationService.success(`Booking ${status} successfully. Seats and revenue updated.`);
         this.reload();
+        // Refresh screenings to reflect updated ticketsSold
+        this.screeningService.getToday().pipe(map((r: any) => r.data as Screening[])).subscribe({
+          next: () => {}, // screenings are cached in ScreeningService; this just invalidates
+          error: () => {},
+        });
       },
       error: (err: any) => {
         this.busyId.set(null);
         this.error.set(err?.error?.message || 'Failed to update booking');
+      },
+    });
+  }
+
+  deleteBooking(booking: Booking): void {
+    if (!confirm('Delete this booking permanently? This action cannot be undone.')) return;
+
+    this.error.set('');
+    this.busyId.set(booking.id);
+    this.bookingService.deleteBooking(booking.id).subscribe({
+      next: () => {
+        this.busyId.set(null);
+        this.notificationService.success('Booking deleted successfully.');
+        this.reload();
+        // Refresh screenings to reflect updated ticketsSold (though cancelled/refunded bookings shouldn't affect ticketsSold)
+        this.screeningService.getToday().pipe(map((r: any) => r.data as Screening[])).subscribe({
+          next: () => {},
+          error: () => {},
+        });
+      },
+      error: (err: any) => {
+        this.busyId.set(null);
+        this.error.set(err?.error?.message || 'Failed to delete booking');
       },
     });
   }

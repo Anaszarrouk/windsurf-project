@@ -65,11 +65,7 @@ import { ScreeningService, Screening } from '../../../services/screening.service
       }
     </div>
 
-    <div class="card" style="margin-top: 16px;">
-      <h3 style="margin-top:0;">Notes</h3>
-      <p style="color:#bbb;">Cinema info/currency/tax rules are not stored in the backend yet. This page currently reflects real operational settings/state (users, bans, tasks, and screenings).</p>
-    </div>
-  `,
+      `,
   styles: [`
     .grid {
       display: grid;

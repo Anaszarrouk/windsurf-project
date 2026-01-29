@@ -118,10 +118,36 @@ export class BookingService {
     });
   }
 
+  async removeV2(id: string): Promise<void> {
+    return this.dataSource.transaction(async (manager) => {
+      const bookingRepo = manager.getRepository(Booking);
+      const screeningRepo = manager.getRepository(Screening);
+
+      const booking = await bookingRepo.findOne({ where: { id } });
+      if (!booking) {
+        throw new NotFoundException(`Booking with ID ${id} not found`);
+      }
+
+      const screeningId = booking.screeningId;
+      await bookingRepo.softRemove(booking);
+
+      // After deletion, sync ticketsSold for the screening
+      const screening = await screeningRepo.findOne({ where: { id: screeningId } });
+      if (screening) {
+        await this.syncTicketsSold(manager, screening.id);
+      }
+    });
+  }
+
   private async syncTicketsSold(manager: any, screeningId: string): Promise<void> {
     const bookingRepo = manager.getRepository(Booking);
     const screeningRepo = manager.getRepository(Screening);
 
+    // Get current screening to read existing ticketsSold
+    const screening = await screeningRepo.findOne({ where: { id: screeningId } });
+    if (!screening) return;
+
+    // Sum only PAID bookings
     const bookedSeatsRaw = await bookingRepo
       .createQueryBuilder('b')
       .select('COALESCE(SUM(b.seatsCount), 0)', 'sum')
@@ -130,6 +156,8 @@ export class BookingService {
       .getRawOne();
 
     const bookedSeats = Number((bookedSeatsRaw as any)?.sum ?? 0);
-    await screeningRepo.update({ id: screeningId }, { ticketsSold: bookedSeats as any });
+    // Add new bookings to existing ticketsSold (preserve manually set initial value)
+    const newTicketsSold = (screening.ticketsSold || 0) + bookedSeats;
+    await screeningRepo.update({ id: screeningId }, { ticketsSold: newTicketsSold as any });
   }
 }

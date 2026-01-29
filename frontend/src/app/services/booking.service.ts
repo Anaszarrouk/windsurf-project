@@ -50,4 +50,8 @@ export class BookingService {
   cancelBooking(id: string, status: 'cancelled' | 'refunded' = 'cancelled'): Observable<{ data: Booking }> {
     return this.http.patch<{ data: Booking }>(`${this.apiUrl}/${id}/cancel`, { status });
   }
+
+  deleteBooking(id: string): Observable<{ data: unknown }> {
+    return this.http.delete<{ data: unknown }>(`${this.apiUrl}/${id}`);
+  }
 }

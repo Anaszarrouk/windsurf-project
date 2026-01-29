@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Get,
   Post,
   Patch,
@@ -51,5 +52,13 @@ export class BookingController {
   @Patch(':id/cancel')
   cancelV2(@Param('id') id: string, @Body() dto: CancelBookingDto) {
     return this.bookingService.cancelV2(id, dto.status ?? BookingStatus.CANCELLED);
+  }
+
+  @Version('2')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Delete(':id')
+  removeV2(@Param('id') id: string) {
+    return this.bookingService.removeV2(id);
   }
 }

@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnDestroy, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
+import { interval, Subject } from 'rxjs';
+import { takeUntil, startWith } from 'rxjs/operators';
 import { Screening, ScreeningService } from '../../../services/screening.service';
 
 @Component({
@@ -95,8 +97,9 @@ import { Screening, ScreeningService } from '../../../services/screening.service
     }
   `],
 })
-export class AdminReportsComponent {
+export class AdminReportsComponent implements OnInit, OnDestroy {
   private screeningService = inject(ScreeningService);
+  private destroy$ = new Subject<void>();
 
   isLoading = signal(true);
   error = signal<string>('');
@@ -160,8 +163,15 @@ export class AdminReportsComponent {
     return Object.values(byMovie).sort((a, b) => b.tickets - a.tickets).slice(0, 10);
   });
 
-  constructor() {
+  ngOnInit(): void {
     this.reload();
+    // Auto-refresh every 30 seconds
+    interval(30000).pipe(startWith(0), takeUntil(this.destroy$)).subscribe(() => this.reload());
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   reload(): void {

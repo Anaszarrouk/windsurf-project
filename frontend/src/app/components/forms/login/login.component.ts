@@ -2,13 +2,12 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
-import { RainbowDirective } from '../../../directives/rainbow.directive';
 import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterLink, RainbowDirective],
+  imports: [FormsModule, RouterLink],
   template: `
     <div class="login-container">
       <div class="login-card card">
@@ -25,7 +24,7 @@ import { NotificationService } from '../../../services/notification.service';
               minlength="3"
               #username="ngModel"
               [class.error]="username.invalid && username.touched"
-              appRainbow>
+              >
             @if (username.invalid && username.touched) {
               <span class="error-message">Username is required (min 3 chars)</span>
             }

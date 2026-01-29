@@ -17,35 +17,26 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const genre_entity_1 = require("./entities/genre.entity");
-let GenreService = class GenreService {
+const base_crud_service_1 = require("../common/crud/base-crud.service");
+let GenreService = class GenreService extends base_crud_service_1.BaseCrudService {
     constructor(genreRepository) {
+        super(genreRepository, 'Genre');
         this.genreRepository = genreRepository;
     }
-    async findAll() {
-        return this.genreRepository.find({ relations: ['movies'] });
+    findAll() {
+        return super.findAll({ relations: ['movies'] });
     }
-    async findOne(id) {
-        const genre = await this.genreRepository.findOne({
-            where: { id },
-            relations: ['movies'],
-        });
-        if (!genre) {
-            throw new common_1.NotFoundException(`Genre with ID ${id} not found`);
-        }
-        return genre;
+    findOne(id) {
+        return super.findOne(id, { relations: ['movies'] });
     }
-    async create(createGenreDto) {
-        const genre = this.genreRepository.create(createGenreDto);
-        return this.genreRepository.save(genre);
+    create(createGenreDto) {
+        return super.create(createGenreDto);
     }
     async update(id, updateGenreDto) {
-        const genre = await this.findOne(id);
-        Object.assign(genre, updateGenreDto);
-        return this.genreRepository.save(genre);
+        return super.update(id, updateGenreDto);
     }
-    async remove(id) {
-        const genre = await this.findOne(id);
-        await this.genreRepository.remove(genre);
+    remove(id) {
+        return super.removeHard(id);
     }
 };
 exports.GenreService = GenreService;

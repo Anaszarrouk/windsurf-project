@@ -25,95 +25,37 @@ let MovieController = class MovieController {
     constructor(movieService) {
         this.movieService = movieService;
     }
-    findAllV1() {
-        return this.movieService.findAllV1();
-    }
-    findOneV1(id) {
-        return this.movieService.findOneV1(id);
-    }
-    createV1(createMovieDto) {
-        return this.movieService.createV1(createMovieDto);
-    }
-    updateV1(id, updateMovieDto) {
-        return this.movieService.updateV1(id, updateMovieDto);
-    }
-    removeV1(id) {
-        return this.movieService.removeV1(id);
-    }
-    findAllV2() {
+    findAll() {
         return this.movieService.findAllV2();
     }
-    findOneV2(id) {
+    findOne(id) {
         return this.movieService.findOneV2(id);
     }
-    createV2(createMovieDto) {
+    create(createMovieDto) {
         return this.movieService.createV2(createMovieDto);
     }
-    updateV2(id, updateMovieDto) {
+    update(id, updateMovieDto) {
         return this.movieService.updateV2(id, updateMovieDto);
     }
-    removeV2(id) {
+    remove(id) {
         return this.movieService.removeV2(id);
     }
 };
 exports.MovieController = MovieController;
 __decorate([
-    (0, common_1.Version)('1'),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], MovieController.prototype, "findAllV1", null);
+], MovieController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Version)('1'),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], MovieController.prototype, "findOneV1", null);
+], MovieController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.Version)('1'),
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_movie_dto_1.CreateMovieDto]),
-    __metadata("design:returntype", void 0)
-], MovieController.prototype, "createV1", null);
-__decorate([
-    (0, common_1.Version)('1'),
-    (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_movie_dto_1.UpdateMovieDto]),
-    __metadata("design:returntype", void 0)
-], MovieController.prototype, "updateV1", null);
-__decorate([
-    (0, common_1.Version)('1'),
-    (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], MovieController.prototype, "removeV1", null);
-__decorate([
-    (0, common_1.Version)('2'),
-    (0, common_1.Get)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], MovieController.prototype, "findAllV2", null);
-__decorate([
-    (0, common_1.Version)('2'),
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], MovieController.prototype, "findOneV2", null);
-__decorate([
-    (0, common_1.Version)('2'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Post)(),
@@ -121,9 +63,8 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_movie_dto_1.CreateMovieDto]),
     __metadata("design:returntype", void 0)
-], MovieController.prototype, "createV2", null);
+], MovieController.prototype, "create", null);
 __decorate([
-    (0, common_1.Version)('2'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Patch)(':id'),
@@ -132,9 +73,8 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_movie_dto_1.UpdateMovieDto]),
     __metadata("design:returntype", void 0)
-], MovieController.prototype, "updateV2", null);
+], MovieController.prototype, "update", null);
 __decorate([
-    (0, common_1.Version)('2'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Delete)(':id'),
@@ -142,7 +82,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], MovieController.prototype, "removeV2", null);
+], MovieController.prototype, "remove", null);
 exports.MovieController = MovieController = __decorate([
     (0, common_1.Controller)('movies'),
     __metadata("design:paramtypes", [movie_service_1.MovieService])

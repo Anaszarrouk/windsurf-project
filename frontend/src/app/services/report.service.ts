@@ -37,7 +37,7 @@ export interface CreateReportPayload {
   providedIn: 'root',
 })
 export class ReportService {
-  private apiUrl = 'http://localhost:3000/v2/reports';
+  private apiUrl = 'http://localhost:3000/reports';
 
   constructor(private http: HttpClient) {}
 

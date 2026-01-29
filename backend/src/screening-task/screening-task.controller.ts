@@ -7,8 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Version,
-  UsePipes,
 } from '@nestjs/common';
 import { ScreeningTaskService } from './screening-task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -17,88 +15,43 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '../auth/entities/user.entity';
-import { FreezePipe } from '../common/pipes/freeze.pipe';
+import { BaseCrudController } from '../common/crud/base-crud.controller';
+import { Task } from './entities/task.entity';
 
-// Exercise 2.1: ScreeningTaskController with CRUD endpoints using URI Versioning
 @Controller('tasks')
-export class ScreeningTaskController {
-  constructor(private readonly taskService: ScreeningTaskService) {}
+export class ScreeningTaskController extends BaseCrudController<Task, CreateTaskDto, UpdateTaskDto> {
+  constructor(private readonly taskService: ScreeningTaskService) {
+    super(taskService);
+  }
 
-  // V1 Endpoints (In-memory storage with UUID)
-  @Version('1')
   @Get()
-  findAllV1() {
-    return this.taskService.findAllV1();
+  findAll() {
+    return super.findAll();
   }
 
-  @Version('1')
   @Get(':id')
-  findOneV1(@Param('id') id: string) {
-    return this.taskService.findOneV1(id);
+  findOne(@Param('id') id: string) {
+    return super.findOne(id);
   }
 
-  @Version('1')
-  @Post()
-  createV1(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.createV1(createTaskDto);
-  }
-
-  @Version('1')
-  @Patch(':id')
-  updateV1(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.taskService.updateV1(id, updateTaskDto);
-  }
-
-  @Version('1')
-  @Delete(':id')
-  removeV1(@Param('id') id: string) {
-    return this.taskService.removeV1(id);
-  }
-
-  // V2 Endpoints (TypeORM with MySQL)
-  @Version('2')
-  @Get()
-  findAllV2() {
-    return this.taskService.findAllV2();
-  }
-
-  @Version('2')
-  @Get(':id')
-  findOneV2(@Param('id') id: string) {
-    return this.taskService.findOneV2(id);
-  }
-
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Post()
-  createV2(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.createV2(createTaskDto);
+  create(@Body() createTaskDto: CreateTaskDto) {
+    return super.create(createTaskDto);
   }
 
-  // Exercise 6.2: Endpoint using FreezePipe
-  @Version('2')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.MANAGER, UserRole.ADMIN)
-  @Post('frozen')
-  @UsePipes(FreezePipe)
-  createFrozenV2(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.createV2(createTaskDto);
-  }
-
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Patch(':id')
-  updateV2(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.taskService.updateV2(id, updateTaskDto);
+  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+    return super.update(id, updateTaskDto);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Delete(':id')
-  removeV2(@Param('id') id: string) {
-    return this.taskService.removeV2(id);
+  remove(@Param('id') id: string) {
+    return super.removeSoft(id);
   }
 }

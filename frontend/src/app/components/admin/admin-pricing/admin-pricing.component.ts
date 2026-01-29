@@ -25,7 +25,7 @@ import { Movie, MovieService } from '../../../services/movie.service';
           <input type="number" min="0" step="0.01" [(ngModel)]="bulkPrice" placeholder="Set default price for all movies" />
           <button class="btn btn-secondary" type="button" (click)="applyBulkPrice()" [disabled]="bulkSaving()">Apply</button>
         </div>
-        <div style="color:#888; font-size:12px; margin-top: 8px;">This updates each movie via /v2/movies PATCH.</div>
+        <div style="color:#888; font-size:12px; margin-top: 8px;">This updates each movie via movies PATCH.</div>
 
         @if (error()) {
           <div class="error" style="margin-top: 10px;">{{ error() }}</div>

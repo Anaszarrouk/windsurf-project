@@ -3,10 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScreeningTaskService } from './screening-task.service';
 import { ScreeningTaskController } from './screening-task.controller';
 import { Task } from './entities/task.entity';
-import { CommonModule } from '../common/common.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task]), CommonModule],
+  imports: [TypeOrmModule.forFeature([Task])],
   controllers: [ScreeningTaskController],
   providers: [ScreeningTaskService],
   exports: [ScreeningTaskService],

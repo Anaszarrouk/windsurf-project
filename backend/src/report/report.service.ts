@@ -12,7 +12,7 @@ export class ReportService {
     private readonly reportRepository: Repository<Report>,
   ) {}
 
-  async create(userId: string, dto: CreateReportDto): Promise<Report> {
+  create(userId: string, dto: CreateReportDto): Promise<Report> {
     const report = this.reportRepository.create({
       userId,
       category: dto.category,
@@ -26,7 +26,7 @@ export class ReportService {
     return this.reportRepository.save(report);
   }
 
-  async findAllForStaff(): Promise<Report[]> {
+  findAllForStaff(): Promise<Report[]> {
     return this.reportRepository.find({
       order: { createdAt: 'DESC' },
       relations: ['user', 'resolvedByUser'],

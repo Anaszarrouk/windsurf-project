@@ -20,7 +20,7 @@ export interface Screening {
   providedIn: 'root',
 })
 export class ScreeningService {
-  private apiUrl = 'http://localhost:3000/v2/screenings';
+  private apiUrl = 'http://localhost:3000/screenings';
 
   constructor(private http: HttpClient) {}
 

@@ -30,7 +30,7 @@ export interface Booking {
   providedIn: 'root',
 })
 export class BookingService {
-  private apiUrl = 'http://localhost:3000/v2/bookings';
+  private apiUrl = 'http://localhost:3000/bookings';
 
   constructor(private http: HttpClient) {}
 

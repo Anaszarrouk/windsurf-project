@@ -1,45 +1,37 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Genre } from './entities/genre.entity';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
+import { BaseCrudService } from '../common/crud/base-crud.service';
 
 @Injectable()
-export class GenreService {
+export class GenreService extends BaseCrudService<Genre> {
   constructor(
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
-  ) {}
-
-  async findAll(): Promise<Genre[]> {
-    return this.genreRepository.find({ relations: ['movies'] });
+  ) {
+    super(genreRepository, 'Genre');
   }
 
-  async findOne(id: string): Promise<Genre> {
-    const genre = await this.genreRepository.findOne({
-      where: { id },
-      relations: ['movies'],
-    });
-    if (!genre) {
-      throw new NotFoundException(`Genre with ID ${id} not found`);
-    }
-    return genre;
+  findAll(): Promise<Genre[]> {
+    return super.findAll({ relations: ['movies'] });
   }
 
-  async create(createGenreDto: CreateGenreDto): Promise<Genre> {
-    const genre = this.genreRepository.create(createGenreDto);
-    return this.genreRepository.save(genre);
+  findOne(id: string): Promise<Genre> {
+    return super.findOne(id, { relations: ['movies'] });
+  }
+
+  create(createGenreDto: CreateGenreDto): Promise<Genre> {
+    return super.create(createGenreDto);
   }
 
   async update(id: string, updateGenreDto: UpdateGenreDto): Promise<Genre> {
-    const genre = await this.findOne(id);
-    Object.assign(genre, updateGenreDto);
-    return this.genreRepository.save(genre);
+    return super.update(id, updateGenreDto);
   }
 
-  async remove(id: string): Promise<void> {
-    const genre = await this.findOne(id);
-    await this.genreRepository.remove(genre);
+  remove(id: string): Promise<void> {
+    return super.removeHard(id);
   }
 }

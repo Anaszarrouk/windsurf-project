@@ -21,28 +21,26 @@ const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const user_entity_1 = require("../auth/entities/user.entity");
-const fusion_upper_pipe_1 = require("../common/pipes/fusion-upper.pipe");
-let GenreController = class GenreController {
+const base_crud_controller_1 = require("../common/crud/base-crud.controller");
+let GenreController = class GenreController extends base_crud_controller_1.BaseCrudController {
     constructor(genreService) {
+        super(genreService);
         this.genreService = genreService;
     }
     findAll() {
-        return this.genreService.findAll();
+        return super.findAll();
     }
     findOne(id) {
-        return this.genreService.findOne(id);
+        return super.findOne(id);
     }
     create(createGenreDto) {
-        return this.genreService.create(createGenreDto);
+        return super.create(createGenreDto);
     }
     update(id, updateGenreDto) {
-        return this.genreService.update(id, updateGenreDto);
+        return super.update(id, updateGenreDto);
     }
     remove(id) {
         return this.genreService.remove(id);
-    }
-    fusionGenres(genres) {
-        return { fusedGenres: genres };
     }
 };
 exports.GenreController = GenreController;
@@ -87,14 +85,6 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], GenreController.prototype, "remove", null);
-__decorate([
-    (0, common_1.Post)('fusion'),
-    (0, common_1.UsePipes)(fusion_upper_pipe_1.FusionUpperPipe),
-    __param(0, (0, common_1.Body)('genres')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array]),
-    __metadata("design:returntype", void 0)
-], GenreController.prototype, "fusionGenres", null);
 exports.GenreController = GenreController = __decorate([
     (0, common_1.Controller)('genres'),
     __metadata("design:paramtypes", [genre_service_1.GenreService])

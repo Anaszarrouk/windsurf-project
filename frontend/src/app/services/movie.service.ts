@@ -25,7 +25,7 @@ export interface Genre {
   providedIn: 'root'
 })
 export class MovieService {
-  private apiUrl = 'http://localhost:3000/v2/movies';
+  private apiUrl = 'http://localhost:3000/movies';
 
   selectedMovie = signal<Movie | null>(null);
 

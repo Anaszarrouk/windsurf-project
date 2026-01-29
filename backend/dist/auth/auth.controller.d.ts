@@ -12,10 +12,6 @@ export declare class AuthController {
         user: Partial<import("./entities/user.entity").User>;
         access_token: string;
     }>;
-    regiter(createUserDto: CreateUserDto, res: Response): Promise<{
-        user: Partial<import("./entities/user.entity").User>;
-        access_token: string;
-    }>;
     login(loginDto: LoginDto, res: Response): Promise<{
         user: Partial<import("./entities/user.entity").User>;
         access_token: string;

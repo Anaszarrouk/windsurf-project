@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   UseGuards,
-  Version,
   Request,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
@@ -24,21 +23,18 @@ import { BookingStatus } from './entities/booking.entity';
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
-  @Version('2')
   @UseGuards(JwtAuthGuard)
   @Post()
   createV2(@Request() req: any, @Body() dto: CreateBookingDto) {
     return this.bookingService.createV2(req.user.id, dto);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard)
   @Get('me')
   findMineV2(@Request() req: any) {
     return this.bookingService.findMineV2(req.user.id);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Get()
@@ -46,7 +42,6 @@ export class BookingController {
     return this.bookingService.findAllV2(date);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
   @Patch(':id/cancel')
@@ -54,7 +49,6 @@ export class BookingController {
     return this.bookingService.cancelV2(id, dto.status ?? BookingStatus.CANCELLED);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete(':id')

@@ -17,87 +17,32 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const task_entity_1 = require("./entities/task.entity");
-let ScreeningTaskService = class ScreeningTaskService {
-    constructor(taskRepository, uuid) {
+const base_crud_service_1 = require("../common/crud/base-crud.service");
+let ScreeningTaskService = class ScreeningTaskService extends base_crud_service_1.BaseCrudService {
+    constructor(taskRepository) {
+        super(taskRepository, 'Task');
         this.taskRepository = taskRepository;
-        this.uuid = uuid;
-        this.tasksInMemory = [];
-        this.idCounter = 1;
     }
-    findAllV1() {
-        return this.tasksInMemory;
+    findAllV2() {
+        return super.findAll();
     }
-    findOneV1(id) {
-        const task = this.tasksInMemory.find((t) => t.id === id);
-        if (!task) {
-            throw new common_1.NotFoundException(`Task with ID ${id} not found`);
-        }
-        return task;
+    findOneV2(id) {
+        return super.findOne(id);
     }
-    createV1(createTaskDto) {
-        const task = {
-            id: this.uuid(),
-            name: createTaskDto.name,
-            description: createTaskDto.description || '',
-            date: createTaskDto.date ? new Date(createTaskDto.date) : null,
-            status: createTaskDto.status || 'En attente',
-            screeningId: createTaskDto.screeningId,
-        };
-        this.tasksInMemory.push(task);
-        return task;
+    createV2(createTaskDto) {
+        return super.create(createTaskDto);
     }
-    updateV1(id, updateTaskDto) {
-        const index = this.tasksInMemory.findIndex((t) => t.id === id);
-        if (index === -1) {
-            throw new common_1.NotFoundException(`Task with ID ${id} not found`);
-        }
-        const updatedTask = {
-            ...this.tasksInMemory[index],
-            ...updateTaskDto,
-            date: this.tasksInMemory[index].date
-        };
-        if (updateTaskDto.date) {
-            updatedTask.date = new Date(updateTaskDto.date);
-        }
-        this.tasksInMemory[index] = updatedTask;
-        return this.tasksInMemory[index];
+    updateV2(id, updateTaskDto) {
+        return super.update(id, updateTaskDto);
     }
-    removeV1(id) {
-        const index = this.tasksInMemory.findIndex((t) => t.id === id);
-        if (index === -1) {
-            throw new common_1.NotFoundException(`Task with ID ${id} not found`);
-        }
-        this.tasksInMemory.splice(index, 1);
-    }
-    async findAllV2() {
-        return this.taskRepository.find();
-    }
-    async findOneV2(id) {
-        const task = await this.taskRepository.findOne({ where: { id } });
-        if (!task) {
-            throw new common_1.NotFoundException(`Task with ID ${id} not found`);
-        }
-        return task;
-    }
-    async createV2(createTaskDto) {
-        const task = this.taskRepository.create(createTaskDto);
-        return this.taskRepository.save(task);
-    }
-    async updateV2(id, updateTaskDto) {
-        const task = await this.findOneV2(id);
-        Object.assign(task, updateTaskDto);
-        return this.taskRepository.save(task);
-    }
-    async removeV2(id) {
-        const task = await this.findOneV2(id);
-        await this.taskRepository.softRemove(task);
+    removeV2(id) {
+        return super.removeSoft(id);
     }
 };
 exports.ScreeningTaskService = ScreeningTaskService;
 exports.ScreeningTaskService = ScreeningTaskService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(task_entity_1.Task)),
-    __param(1, (0, common_1.Inject)('UUID')),
-    __metadata("design:paramtypes", [typeorm_2.Repository, Function])
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], ScreeningTaskService);
 //# sourceMappingURL=screening-task.service.js.map

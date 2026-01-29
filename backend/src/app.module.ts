@@ -8,7 +8,6 @@ import { ScreeningTaskModule } from './screening-task/screening-task.module';
 import { ScreeningModule } from './screening/screening.module';
 import { BookingModule } from './booking/booking.module';
 import { ReportModule } from './report/report.module';
-import { CommonModule } from './common/common.module';
 import { ReviewModule } from './review/review.module';
 import { FirstMiddleware } from './common/middleware/first.middleware';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
@@ -36,7 +35,6 @@ TypeOrmModule.forRootAsync({
   }),
   inject: [ConfigService],
 }),
-    CommonModule,
     AuthModule,
     MovieModule,
     ReviewModule,

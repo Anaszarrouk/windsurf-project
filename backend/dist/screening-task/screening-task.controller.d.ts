@@ -1,18 +1,14 @@
 import { ScreeningTaskService } from './screening-task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-export declare class ScreeningTaskController {
+import { BaseCrudController } from '../common/crud/base-crud.controller';
+import { Task } from './entities/task.entity';
+export declare class ScreeningTaskController extends BaseCrudController<Task, CreateTaskDto, UpdateTaskDto> {
     private readonly taskService;
     constructor(taskService: ScreeningTaskService);
-    findAllV1(): import("./screening-task.service").TaskModel[];
-    findOneV1(id: string): import("./screening-task.service").TaskModel;
-    createV1(createTaskDto: CreateTaskDto): import("./screening-task.service").TaskModel;
-    updateV1(id: string, updateTaskDto: UpdateTaskDto): import("./screening-task.service").TaskModel;
-    removeV1(id: string): void;
-    findAllV2(): Promise<import("./entities/task.entity").Task[]>;
-    findOneV2(id: string): Promise<import("./entities/task.entity").Task>;
-    createV2(createTaskDto: CreateTaskDto): Promise<import("./entities/task.entity").Task>;
-    createFrozenV2(createTaskDto: CreateTaskDto): Promise<import("./entities/task.entity").Task>;
-    updateV2(id: string, updateTaskDto: UpdateTaskDto): Promise<import("./entities/task.entity").Task>;
-    removeV2(id: string): Promise<void>;
+    findAll(): Promise<Task[]>;
+    findOne(id: string): Promise<Task>;
+    create(createTaskDto: CreateTaskDto): Promise<Task>;
+    update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task>;
+    remove(id: string): Promise<void>;
 }

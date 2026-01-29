@@ -12,7 +12,7 @@ export class ScreeningService {
     private screeningRepository: Repository<Screening>,
   ) {}
 
-  async findAllV2(movieId?: string): Promise<Screening[]> {
+  findAllV2(movieId?: string): Promise<Screening[]> {
     const where = movieId ? { movieId } : {};
     return this.screeningRepository.find({
       where: where as any,
@@ -20,7 +20,7 @@ export class ScreeningService {
     });
   }
 
-  async findTodayV2(): Promise<Screening[]> {
+  findTodayV2(): Promise<Screening[]> {
     const now = new Date();
     const start = new Date(now);
     start.setHours(0, 0, 0, 0);
@@ -44,7 +44,7 @@ export class ScreeningService {
     return screening;
   }
 
-  async createV2(dto: CreateScreeningDto): Promise<Screening> {
+  createV2(dto: CreateScreeningDto): Promise<Screening> {
     const screening = this.screeningRepository.create({
       movieId: dto.movieId,
       startsAt: new Date(dto.startsAt),
@@ -59,15 +59,23 @@ export class ScreeningService {
   }
 
   async updateV2(id: string, dto: UpdateScreeningDto): Promise<Screening> {
-    const screening = await this.findOneV2(id);
+    const updatePayload: Partial<Screening> = {};
+    if (dto.movieId != null) updatePayload.movieId = dto.movieId;
+    if (dto.startsAt != null) updatePayload.startsAt = new Date(dto.startsAt as any);
+    if (dto.endsAt != null) updatePayload.endsAt = new Date(dto.endsAt as any);
+    if (dto.room != null) updatePayload.room = dto.room;
+    if (dto.capacity != null) updatePayload.capacity = dto.capacity as any;
+    if (dto.ticketsSold != null) updatePayload.ticketsSold = dto.ticketsSold as any;
+    if (dto.status != null) updatePayload.status = dto.status;
 
-    if (dto.movieId != null) screening.movieId = dto.movieId;
-    if (dto.startsAt != null) screening.startsAt = new Date(dto.startsAt);
-    if (dto.endsAt != null) screening.endsAt = new Date(dto.endsAt);
-    if (dto.room != null) screening.room = dto.room;
-    if (dto.capacity != null) screening.capacity = dto.capacity as any;
-    if (dto.ticketsSold != null) screening.ticketsSold = dto.ticketsSold as any;
-    if (dto.status != null) screening.status = dto.status;
+    const screening = await this.screeningRepository.preload({
+      id,
+      ...(updatePayload as any),
+    });
+
+    if (!screening) {
+      throw new NotFoundException(`Screening with ID ${id} not found`);
+    }
 
     return this.screeningRepository.save(screening);
   }

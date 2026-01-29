@@ -36,14 +36,6 @@ let AuthController = class AuthController {
         });
         return result;
     }
-    async regiter(createUserDto, res) {
-        const result = await this.authService.register(createUserDto);
-        res.cookie('access_token', result.access_token, {
-            httpOnly: true,
-            sameSite: 'lax',
-        });
-        return result;
-    }
     async login(loginDto, res) {
         const result = await this.authService.login(loginDto);
         res.cookie('access_token', result.access_token, {
@@ -81,14 +73,6 @@ __decorate([
     __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
-__decorate([
-    (0, common_1.Post)('regiter'),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Res)({ passthrough: true })),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "regiter", null);
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),

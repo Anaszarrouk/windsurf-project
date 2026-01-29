@@ -17,7 +17,6 @@ const screening_task_module_1 = require("./screening-task/screening-task.module"
 const screening_module_1 = require("./screening/screening.module");
 const booking_module_1 = require("./booking/booking.module");
 const report_module_1 = require("./report/report.module");
-const common_module_1 = require("./common/common.module");
 const review_module_1 = require("./review/review.module");
 const first_middleware_1 = require("./common/middleware/first.middleware");
 const logger_middleware_1 = require("./common/middleware/logger.middleware");
@@ -51,7 +50,6 @@ exports.AppModule = AppModule = __decorate([
                 }),
                 inject: [config_1.ConfigService],
             }),
-            common_module_1.CommonModule,
             auth_module_1.AuthModule,
             movie_module_1.MovieModule,
             review_module_1.ReviewModule,

@@ -24,46 +24,6 @@ let MovieService = class MovieService {
         this.movieRepository = movieRepository;
         this.genreRepository = genreRepository;
         this.reviewService = reviewService;
-        this.moviesInMemory = [];
-        this.idCounter = 1;
-    }
-    findAllV1() {
-        return this.moviesInMemory;
-    }
-    findOneV1(id) {
-        const movie = this.moviesInMemory.find((m) => m.id === id);
-        if (!movie) {
-            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
-        }
-        return movie;
-    }
-    createV1(createMovieDto) {
-        const movie = {
-            id: String(this.idCounter++),
-            title: createMovieDto.title,
-            duration: createMovieDto.duration,
-            poster: createMovieDto.poster || '',
-            director: createMovieDto.director,
-            price: createMovieDto.price,
-            trailerUrl: createMovieDto.trailerUrl,
-        };
-        this.moviesInMemory.push(movie);
-        return movie;
-    }
-    updateV1(id, updateMovieDto) {
-        const index = this.moviesInMemory.findIndex((m) => m.id === id);
-        if (index === -1) {
-            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
-        }
-        this.moviesInMemory[index] = { ...this.moviesInMemory[index], ...updateMovieDto };
-        return this.moviesInMemory[index];
-    }
-    removeV1(id) {
-        const index = this.moviesInMemory.findIndex((m) => m.id === id);
-        if (index === -1) {
-            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
-        }
-        this.moviesInMemory.splice(index, 1);
     }
     async findAllV2() {
         const movies = await this.movieRepository.find({ relations: ['user', 'genres'] });
@@ -102,13 +62,19 @@ let MovieService = class MovieService {
         return this.movieRepository.save(movie);
     }
     async updateV2(id, updateMovieDto) {
-        const movie = await this.findOneV2(id);
-        if (updateMovieDto.genreIds) {
+        const { genreIds, ...updatePayload } = updateMovieDto;
+        const movie = await this.movieRepository.preload({
+            id,
+            ...updatePayload,
+        });
+        if (!movie) {
+            throw new common_1.NotFoundException(`Movie with ID ${id} not found`);
+        }
+        if (genreIds) {
             movie.genres = await this.genreRepository.find({
-                where: { id: (0, typeorm_2.In)(updateMovieDto.genreIds) },
+                where: { id: (0, typeorm_2.In)(genreIds) },
             });
         }
-        Object.assign(movie, updateMovieDto);
         return this.movieRepository.save(movie);
     }
     async removeV2(id) {

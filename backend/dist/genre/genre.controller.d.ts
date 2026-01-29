@@ -1,15 +1,14 @@
 import { GenreService } from './genre.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
-export declare class GenreController {
+import { BaseCrudController } from '../common/crud/base-crud.controller';
+import { Genre } from './entities/genre.entity';
+export declare class GenreController extends BaseCrudController<Genre, CreateGenreDto, UpdateGenreDto> {
     private readonly genreService;
     constructor(genreService: GenreService);
-    findAll(): Promise<import("./entities/genre.entity").Genre[]>;
-    findOne(id: string): Promise<import("./entities/genre.entity").Genre>;
-    create(createGenreDto: CreateGenreDto): Promise<import("./entities/genre.entity").Genre>;
-    update(id: string, updateGenreDto: UpdateGenreDto): Promise<import("./entities/genre.entity").Genre>;
+    findAll(): Promise<Genre[]>;
+    findOne(id: string): Promise<Genre>;
+    create(createGenreDto: CreateGenreDto): Promise<Genre>;
+    update(id: string, updateGenreDto: UpdateGenreDto): Promise<Genre>;
     remove(id: string): Promise<void>;
-    fusionGenres(genres: string[]): {
-        fusedGenres: string[];
-    };
 }

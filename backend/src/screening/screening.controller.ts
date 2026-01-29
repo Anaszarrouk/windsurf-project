@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   UseGuards,
-  Version,
 } from '@nestjs/common';
 import { ScreeningService } from './screening.service';
 import { CreateScreeningDto } from './dto/create-screening.dto';
@@ -22,25 +21,21 @@ import { UserRole } from '../auth/entities/user.entity';
 export class ScreeningController {
   constructor(private readonly screeningService: ScreeningService) {}
 
-  @Version('2')
   @Get()
   findAllV2(@Query('movieId') movieId?: string) {
     return this.screeningService.findAllV2(movieId);
   }
 
-  @Version('2')
   @Get('today')
   findTodayV2() {
     return this.screeningService.findTodayV2();
   }
 
-  @Version('2')
   @Get(':id')
   findOneV2(@Param('id') id: string) {
     return this.screeningService.findOneV2(id);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post()
@@ -48,7 +43,6 @@ export class ScreeningController {
     return this.screeningService.createV2(dto);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Patch(':id')
@@ -56,7 +50,6 @@ export class ScreeningController {
     return this.screeningService.updateV2(id, dto);
   }
 
-  @Version('2')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete(':id')

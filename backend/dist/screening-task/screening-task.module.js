@@ -12,13 +12,12 @@ const typeorm_1 = require("@nestjs/typeorm");
 const screening_task_service_1 = require("./screening-task.service");
 const screening_task_controller_1 = require("./screening-task.controller");
 const task_entity_1 = require("./entities/task.entity");
-const common_module_1 = require("../common/common.module");
 let ScreeningTaskModule = class ScreeningTaskModule {
 };
 exports.ScreeningTaskModule = ScreeningTaskModule;
 exports.ScreeningTaskModule = ScreeningTaskModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([task_entity_1.Task]), common_module_1.CommonModule],
+        imports: [typeorm_1.TypeOrmModule.forFeature([task_entity_1.Task])],
         controllers: [screening_task_controller_1.ScreeningTaskController],
         providers: [screening_task_service_1.ScreeningTaskService],
         exports: [screening_task_service_1.ScreeningTaskService],

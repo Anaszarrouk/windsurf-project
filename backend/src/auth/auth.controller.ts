@@ -25,16 +25,6 @@ export class AuthController {
     return result;
   }
 
-  @Post('regiter')
-  async regiter(@Body() createUserDto: CreateUserDto, @Res({ passthrough: true }) res: Response) {
-    const result = await this.authService.register(createUserDto);
-    res.cookie('access_token', result.access_token, {
-      httpOnly: true,
-      sameSite: 'lax',
-    });
-    return result;
-  }
-
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(loginDto);

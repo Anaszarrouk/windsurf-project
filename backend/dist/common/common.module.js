@@ -8,18 +8,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonModule = void 0;
 const common_1 = require("@nestjs/common");
-const uuid_1 = require("uuid");
-const UuidProvider = {
-    provide: 'UUID',
-    useFactory: () => uuid_1.v4,
-};
 let CommonModule = class CommonModule {
 };
 exports.CommonModule = CommonModule;
 exports.CommonModule = CommonModule = __decorate([
     (0, common_1.Module)({
-        providers: [UuidProvider],
-        exports: [UuidProvider],
+        providers: [],
+        exports: [],
     })
 ], CommonModule);
 //# sourceMappingURL=common.module.js.map

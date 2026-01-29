@@ -33,7 +33,7 @@ export interface CreateReviewPayload {
   providedIn: 'root',
 })
 export class ReviewService {
-  private apiBase = 'http://localhost:3000/v2/movies';
+  private apiBase = 'http://localhost:3000/movies';
 
   constructor(private http: HttpClient) {}
 

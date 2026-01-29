@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const auth_service_1 = require("./auth.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
 const login_dto_1 = require("./dto/login.dto");
@@ -67,6 +68,20 @@ let AuthController = class AuthController {
 exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('register'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Register a new user',
+        description: 'Creates a new user account and returns an access token (also set as cookie).',
+    }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                username: 'john_doe',
+                email: 'john@example.com',
+                password: 'StrongPass123',
+                role: 'USER',
+            },
+        },
+    }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
@@ -75,6 +90,18 @@ __decorate([
 ], AuthController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Login',
+        description: 'Authenticates a user and returns an access token (also set as cookie).',
+    }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                username: 'john_doe',
+                password: 'StrongPass123',
+            },
+        },
+    }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
@@ -83,6 +110,10 @@ __decorate([
 ], AuthController.prototype, "login", null);
 __decorate([
     (0, common_1.Post)('logout'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Logout',
+        description: 'Clears the access token cookie.',
+    }),
     __param(0, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -91,6 +122,10 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('profile'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get my profile',
+        description: 'Returns the authenticated user payload.',
+    }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -100,6 +135,10 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Get)('users'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'List users (admin)',
+        description: 'Returns all users. Requires ADMIN role.',
+    }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
@@ -108,6 +147,18 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Patch)('users/:id/role'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Update user role (admin)',
+        description: 'Updates a user role by user id. Requires ADMIN role.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'User id' }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                role: 'MANAGER',
+            },
+        },
+    }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -118,6 +169,18 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Patch)('users/:id/ban'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Ban/unban user (admin)',
+        description: 'Sets the banned flag for a user. Requires ADMIN role.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'User id' }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                banned: true,
+            },
+        },
+    }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -128,6 +191,18 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Post)('users/:id/reset-password'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Reset user password (admin)',
+        description: 'Resets a user password by user id. Requires ADMIN role.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'User id' }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                newPassword: 'NewStrongPass123',
+            },
+        },
+    }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -135,6 +210,8 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "resetPassword", null);
 exports.AuthController = AuthController = __decorate([
+    (0, swagger_1.ApiTags)('Auth'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);

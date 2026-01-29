@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GenreController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const genre_service_1 = require("./genre.service");
 const create_genre_dto_1 = require("./dto/create-genre.dto");
 const update_genre_dto_1 = require("./dto/update-genre.dto");
@@ -46,12 +47,15 @@ let GenreController = class GenreController extends base_crud_controller_1.BaseC
 exports.GenreController = GenreController;
 __decorate([
     (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'List genres', description: 'Returns all genres.' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GenreController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get genre by id', description: 'Returns a single genre by id.' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Genre id' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -61,6 +65,14 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create genre (admin)', description: 'Creates a new genre. Requires ADMIN role.' }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                designation: 'Sci-Fi',
+            },
+        },
+    }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_genre_dto_1.CreateGenreDto]),
@@ -70,6 +82,15 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Patch)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update genre (admin)', description: 'Updates an existing genre by id. Requires ADMIN role.' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Genre id' }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                designation: 'Science Fiction',
+            },
+        },
+    }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -80,12 +101,16 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN),
     (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete genre (admin)', description: 'Deletes a genre by id. Requires ADMIN role.' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Genre id' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], GenreController.prototype, "remove", null);
 exports.GenreController = GenreController = __decorate([
+    (0, swagger_1.ApiTags)('Genres'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('genres'),
     __metadata("design:paramtypes", [genre_service_1.GenreService])
 ], GenreController);

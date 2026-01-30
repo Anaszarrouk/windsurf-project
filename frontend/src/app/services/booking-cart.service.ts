@@ -1,7 +1,6 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { Movie } from './movie.service';
 
-// Exercise 10.1: BookingCartService (EmbaucheService) to manage selected movies
 @Injectable({
   providedIn: 'root'
 })

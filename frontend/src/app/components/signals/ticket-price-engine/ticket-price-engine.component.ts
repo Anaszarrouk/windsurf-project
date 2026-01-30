@@ -2,7 +2,6 @@ import { Component, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 
-// Exercise 5.1: TicketPriceEngineComponent using computed() signals
 @Component({
   selector: 'app-ticket-price-engine',
   standalone: true,

@@ -7,7 +7,6 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
-// Exercise 8.1: RequestDurationInterceptor to log execution time
 @Injectable()
 export class RequestDurationInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {

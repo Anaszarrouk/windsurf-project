@@ -1,6 +1,5 @@
 import { Directive, HostBinding, HostListener } from '@angular/core';
 
-// Exercise 8.1: RainbowDirective using HostBinding/HostListener on 'keyup' to randomize color
 @Directive({
   selector: '[appRainbow]',
   standalone: true

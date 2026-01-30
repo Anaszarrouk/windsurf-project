@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-// Exercise 9.2: TeamPipe to map staff names to nicknames
 @Pipe({
   name: 'team',
   standalone: true

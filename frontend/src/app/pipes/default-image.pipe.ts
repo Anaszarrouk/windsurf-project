@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-// Exercise 9.1: DefaultImagePipe for empty paths (placeholder for missing posters)
 @Pipe({
   name: 'defaultImage',
   standalone: true

@@ -1,6 +1,5 @@
 import { Component, signal } from '@angular/core';
 
-// Exercise 5.2: GenreListComponent using @for with @empty block and @if for long names
 @Component({
   selector: 'app-genre-list',
   standalone: true,

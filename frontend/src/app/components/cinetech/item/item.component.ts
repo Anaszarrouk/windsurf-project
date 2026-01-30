@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Movie } from '../../../services/movie.service';
 import { DefaultImagePipe } from '../../../pipes/default-image.pipe';
@@ -9,10 +9,10 @@ import { DefaultImagePipe } from '../../../pipes/default-image.pipe';
   imports: [CommonModule, DefaultImagePipe],
   template: `
     <div class="movie-item card">
-      <img [src]="movie.poster | defaultImage" [alt]="movie.title">
+      <img [src]="movie().poster | defaultImage" [alt]="movie().title">
       <div class="movie-info">
-        <h3>{{ movie.title }}</h3>
-        <p>{{ movie.director }} | {{ movie.duration }} min</p>
+        <h3>{{ movie().title }}</h3>
+        <p>{{ movie().director }} | {{ movie().duration }} min</p>
         @if (reviewCount() > 0) {
           <p class="rating">{{ avgRating() | number: '1.1-1' }}/5 ({{ reviewCount() }} reviews)</p>
         }
@@ -64,24 +64,24 @@ import { DefaultImagePipe } from '../../../pipes/default-image.pipe';
   `]
 })
 export class ItemComponent {
-  @Input({ required: true }) movie!: Movie;
+  movie = input.required<Movie>();
 
-  price(): number | null {
-    const raw: unknown = (this.movie as any)?.price;
+  price = computed(() => {
+    const raw: unknown = (this.movie() as any)?.price;
     if (raw == null || raw === '') return null;
     const n = typeof raw === 'number' ? raw : Number(raw);
     return Number.isFinite(n) ? n : null;
-  }
+  });
 
-  reviewCount(): number {
-    const raw: unknown = (this.movie as any)?.reviewCount;
+  reviewCount = computed(() => {
+    const raw: unknown = (this.movie() as any)?.reviewCount;
     const n = typeof raw === 'number' ? raw : Number(raw);
     return Number.isFinite(n) && n > 0 ? n : 0;
-  }
+  });
 
-  avgRating(): number {
-    const raw: unknown = (this.movie as any)?.avgRating;
+  avgRating = computed(() => {
+    const raw: unknown = (this.movie() as any)?.avgRating;
     const n = typeof raw === 'number' ? raw : Number(raw);
     return Number.isFinite(n) && n > 0 ? n : 0;
-  }
+  });
 }

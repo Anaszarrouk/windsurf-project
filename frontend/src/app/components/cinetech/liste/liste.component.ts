@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { Movie } from '../../../services/movie.service';
 import { ItemComponent } from '../item/item.component';
 
@@ -8,7 +8,7 @@ import { ItemComponent } from '../item/item.component';
   imports: [ItemComponent],
   template: `
     <div class="movie-list">
-      @for (movie of movies; track movie.id) {
+      @for (movie of movies(); track movie.id) {
         <app-item 
           [movie]="movie" 
           (click)="selectMovie(movie)">
@@ -34,8 +34,8 @@ import { ItemComponent } from '../item/item.component';
   `]
 })
 export class ListeComponent {
-  @Input() movies: Movie[] = [];
-  @Output() movieSelected = new EventEmitter<Movie>();
+  movies = input<Movie[]>([]);
+  movieSelected = output<Movie>();
 
   selectMovie(movie: Movie): void {
     this.movieSelected.emit(movie);

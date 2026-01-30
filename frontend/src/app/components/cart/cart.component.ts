@@ -74,8 +74,8 @@ import { map } from 'rxjs/operators';
                 </label>
                 <label>
                   Seats:
-                  <input type="number" min="1" [max]="maxSeatsFor(item)" [ngModel]="item.seatsCount()" (ngModelChange)="item.seatsCount.set($event)" />
-                  <small style="color:#888;">Available: {{ maxSeatsFor(item) }}</small>
+                  <input type="number" min="1" [max]="item.availableSeats()" [ngModel]="item.seatsCount()" (ngModelChange)="item.seatsCount.set($event)" />
+                  <small style="color:#888;">Available: {{ item.availableSeats() }}</small>
                 </label>
               </div>
             </div>
@@ -200,6 +200,15 @@ export class CartComponent {
     return items.reduce((sum, m) => sum + this.getMoviePrice(m), 0);
   });
 
+  canPay = computed(() => {
+    return this.payItems().every((item) => {
+      const screeningId = item.selectedScreeningId();
+      const seats = item.seatsCount();
+      const available = item.availableSeats();
+      return !!screeningId && seats > 0 && seats <= available;
+    });
+  });
+
   remove(movieId: string): void {
     this.cart.removeFromCart(movieId);
   }
@@ -210,12 +219,21 @@ export class CartComponent {
 
   startPay(): void {
     const items = this.items();
-    const payItems = items.map(movie => ({
-      movie,
-      screenings: signal<Screening[]>([]),
-      selectedScreeningId: signal<string>(''),
-      seatsCount: signal<number>(1),
-    }));
+    const payItems = items.map((movie) => {
+      const screenings = signal<Screening[]>([]);
+      const selectedScreeningId = signal<string>('');
+      const seatsCount = signal<number>(1);
+
+      const availableSeats = computed(() => {
+        const screening = screenings().find((s: Screening) => s.id === selectedScreeningId());
+        if (!screening) return 0;
+        const capacity = Number(screening.capacity) || 0;
+        const sold = Number(screening.ticketsSold) || 0;
+        return Math.max(0, capacity - sold);
+      });
+
+      return { movie, screenings, selectedScreeningId, seatsCount, availableSeats };
+    });
     this.payItems.set(payItems);
     this.payMode.set(true);
 
@@ -225,6 +243,12 @@ export class CartComponent {
         next: (screenings) => {
           console.log('[startPay] screenings loaded for', pi.movie.title, screenings);
           pi.screenings.set(screenings || []);
+
+          // Default selection (once) to first screening when list arrives.
+          if (!pi.selectedScreeningId() && (screenings || []).length > 0) {
+            pi.selectedScreeningId.set((screenings || [])[0].id);
+            pi.seatsCount.set(1);
+          }
         },
         error: (err) => {
           console.error('[startPay] failed to load screenings for', pi.movie.title, err);
@@ -237,28 +261,6 @@ export class CartComponent {
   cancelPay(): void {
     this.payMode.set(false);
     this.payItems.set([]);
-  }
-
-  maxSeatsFor(item: any): number {
-    const screening = item.screenings().find((s: Screening) => s.id === item.selectedScreeningId());
-    if (!screening) return 0;
-    const capacity = Number(screening.capacity) || 0;
-    const sold = Number(screening.ticketsSold) || 0;
-    const available = Math.max(0, capacity - sold);
-    console.log('[maxSeatsFor] screeningId:', screening.id, 'capacity:', capacity, 'sold:', sold, 'available:', available);
-    return available;
-  }
-
-  canPay(): boolean {
-    const can = this.payItems().every(item => {
-      const screeningId = item.selectedScreeningId();
-      const seats = item.seatsCount();
-      const ok = screeningId && seats > 0 && seats <= this.maxSeatsFor(item);
-      console.log('[canPay] item:', item.movie.title, 'screeningId:', screeningId, 'seats:', seats, 'ok:', ok);
-      return ok;
-    });
-    console.log('[canPay] overall:', can);
-    return can;
   }
 
   async confirmPay(): Promise<void> {
